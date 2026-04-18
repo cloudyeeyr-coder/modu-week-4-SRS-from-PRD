@@ -244,7 +244,7 @@ graph LR
         UC08["UC-08: 긴급 AS 티켓 접수"]
         UC09["UC-09: RaaS 비용 비교 계산"]
         UC10["UC-10: 비용 비교 PDF 다운로드"]
-        UC11["UC-11: 금융 파트너 연결 요청"]
+        UC11["UC-11: 수기 견적 요청 (운영팀 연결)"]
         UC12["UC-12: O2O 매니저 파견 예약 (Ph2)"]
         UC13["UC-13: SI 프로필 등록/수정"]
         UC14["UC-14: 파트너 제안 수락/거절"]
@@ -283,13 +283,13 @@ graph LR
 | UC-02 | SI 파트너 검색 및 필터링 | ● | ● | | ● | | REQ-FUNC-029, 015 |
 | UC-03 | SI 프로필 상세 조회 | ● | ● | | | | REQ-FUNC-009 |
 | UC-04 | 기안용 리포트 PDF 다운로드 | ● | ● | | | | REQ-FUNC-010 |
-| UC-05 | 에스크로 결제 실행 | ● | | | | | REQ-FUNC-001, 004 |
+| UC-05 | 에스크로 결제 실행 | ● | | | | | REQ-FUNC-001 |
 | UC-06 | 시공 검수 승인/거절 | ● | | | | | REQ-FUNC-002, 005 |
 | UC-07 | 분쟁 접수 및 중재 요청 | ● | | | | ● | REQ-FUNC-003 |
 | UC-08 | 긴급 AS 티켓 접수 | ● | | | | | REQ-FUNC-007 |
 | UC-09 | RaaS 비용 비교 계산 | ● | | | | | REQ-FUNC-018, 021 |
 | UC-10 | 비용 비교 PDF 다운로드 | ● | | | | | REQ-FUNC-019 |
-| UC-11 | 금융 파트너 연결 요청 | ● | | | | | REQ-FUNC-020, 022 |
+| UC-11 | 수기 견적 요청 (운영팀 연결) | ● | | | | | REQ-FUNC-020 |
 | UC-12 | O2O 매니저 파견 예약 (Ph2) | ● | | | | | REQ-FUNC-023~026 |
 | UC-13 | SI 프로필 등록/수정 | | | ● | | | REQ-FUNC-028 |
 | UC-14 | 파트너 제안 수락/거절 | | | ● | | | REQ-FUNC-030 |
@@ -590,7 +590,7 @@ sequenceDiagram
 | Req ID | 요구사항 | 측정 기준 | Source |
 |:---:|:---|:---|:---|
 | REQ-NF-018 | MVP 인프라 비용은 월 500만 원 이하를 유지해야 한다 | 월간 클라우드 청구서 기준, ≤ 월 500만 원 | PRD 5.4 |
-| REQ-NF-019 | PG 수수료는 에스크로 전용 요율 기준 3.5% 이하여야 한다 | PG사 계약 요율 확인, ≤ 3.5% | PRD 5.4 |
+| REQ-NF-019 | *(Phase 2 이관)* PG 도입 시 에스크로 전용 요율 기준 3.5% 이하를 적용한다. MVP에서는 PG 미사용 | PG사 계약 요율 확인, ≤ 3.5% (Phase 2 활성화) | PRD 5.4 |
 | REQ-NF-020 | SMS/카카오 알림톡 발송 비용은 건당 20원 이하여야 한다 | 발송 비용 정산 기준, ≤ 건당 20원 | PRD 5.4 |
 
 #### 4.2.5 확장성 (Scalability)
@@ -776,7 +776,7 @@ sequenceDiagram
 | buyer_company_id | UUID | FK → BUYER_COMPANY.id, NOT NULL | 수요 기업 ID |
 | si_partner_id | UUID | FK → SI_PARTNER.id, NOT NULL | SI 파트너 ID |
 | total_amount | DECIMAL(15,2) | NOT NULL, > 0 | 총 계약 금액 |
-| status | ENUM | 'pending', 'escrow_held', 'inspecting', 'completed', 'disputed' | 계약 상태 |
+| status | ENUM | 'pending', 'escrow_held', 'inspecting', 'release_pending', 'completed', 'disputed' | 계약 상태 |
 | inspection_deadline | DATE | NULLABLE | 검수 기한 (시공 완료 + 7영업일) |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 계약 생성 일시 |
 | updated_at | TIMESTAMP | NOT NULL | 최종 수정 일시 |
@@ -854,7 +854,41 @@ sequenceDiagram
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 생성 일시 |
 | updated_at | TIMESTAMP | NOT NULL | 최종 수정 일시 |
 
-#### 6.2.10 ER Diagram
+#### 6.2.10 WARRANTY (AS 보증서)
+
+| 필드 | 타입 | 제약 조건 | 설명 |
+|:---|:---|:---|:---|
+| id | UUID | PK, NOT NULL | 고유 식별자 |
+| contract_id | UUID | FK → CONTRACT.id, NOT NULL | 연결 계약 ID |
+| escrow_tx_id | UUID | FK → ESCROW_TX.id, NOT NULL | 연결 에스크로 TX ID |
+| as_company_name | VARCHAR(255) | NOT NULL | 지정 로컬 AS 업체명 |
+| as_contact_phone | VARCHAR(20) | NOT NULL | AS 업체 연락처 |
+| as_contact_email | VARCHAR(255) | NULLABLE | AS 업체 이메일 |
+| coverage_scope | TEXT | NOT NULL | 보증 범위 설명 |
+| coverage_period_months | INT | NOT NULL, DEFAULT 12 | 보증 기간 (개월) |
+| issued_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 발급 일시 |
+| pdf_url | VARCHAR(500) | NULLABLE | 보증서 PDF URL |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 생성 일시 |
+
+#### 6.2.11 QUOTE_LEAD (수기 견적 요청)
+
+| 필드 | 타입 | 제약 조건 | 설명 |
+|:---|:---|:---|:---|
+| id | UUID | PK, NOT NULL | 고유 식별자 |
+| buyer_company_id | UUID | FK → BUYER_COMPANY.id, NULLABLE | 로그인 사용자 시 수요 기업 ID |
+| robot_model | VARCHAR(255) | NOT NULL | 요청 로봇 모델명 |
+| quantity | INT | NOT NULL, > 0 | 요청 수량 |
+| term_months | INT | NOT NULL, > 0 | 희망 계약 기간 (개월) |
+| contact_name | VARCHAR(100) | NOT NULL | 담당자 이름 |
+| contact_email | VARCHAR(255) | NOT NULL | 담당자 이메일 |
+| contact_phone | VARCHAR(20) | NOT NULL | 담당자 전화번호 |
+| status | ENUM | 'pending', 'in_progress', 'responded', 'closed' | 견적 요청 상태 |
+| response_data | JSONB | NULLABLE | Admin 응답 데이터 (견적 결과) |
+| admin_responded_at | TIMESTAMP | NULLABLE | Admin 응답 일시 |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 요청 일시 |
+| updated_at | TIMESTAMP | NOT NULL | 최종 수정 일시 |
+
+#### 6.2.12 ER Diagram
 
 ```mermaid
 erDiagram
@@ -864,8 +898,10 @@ erDiagram
     SI_PARTNER ||--o{ BADGE : holds
     CONTRACT ||--|| ESCROW_TX : "protected by"
     CONTRACT ||--o{ AS_TICKET : triggers
+    CONTRACT ||--|| WARRANTY : "guaranteed by"
     SI_PARTNER ||--|| SI_PROFILE : has
     BUYER_COMPANY ||--o{ O2O_BOOKING : requests
+    BUYER_COMPANY ||--o{ QUOTE_LEAD : submits
 
     BUYER_COMPANY {
         uuid id PK
@@ -955,9 +991,32 @@ erDiagram
         timestamp report_submitted_at
         jsonb report_content
     }
+    WARRANTY {
+        uuid id PK
+        uuid contract_id FK
+        uuid escrow_tx_id FK
+        string as_company_name
+        string as_contact_phone
+        text coverage_scope
+        int coverage_period_months
+        timestamp issued_at
+        string pdf_url
+    }
+    QUOTE_LEAD {
+        uuid id PK
+        uuid buyer_company_id FK
+        string robot_model
+        int quantity
+        int term_months
+        string contact_name
+        string contact_email
+        enum status
+        jsonb response_data
+        timestamp created_at
+    }
 ```
 
-#### 6.2.11 Class Diagram (도메인 객체 구조)
+#### 6.2.13 Class Diagram (도메인 객체 구조)
 
 시스템의 핵심 도메인 객체 간의 구조적 관계, 속성(Attribute), 주요 기능/메서드(Method)를 도식화한다.
 
@@ -1123,6 +1182,40 @@ classDiagram
         +sendReminder() void
     }
 
+    class Warranty {
+        +UUID id
+        +UUID contractId
+        +UUID escrowTxId
+        +String asCompanyName
+        +String asContactPhone
+        +String asContactEmail
+        +String coverageScope
+        +Int coveragePeriodMonths
+        +Timestamp issuedAt
+        +String pdfUrl
+        +Timestamp createdAt
+        +issue(contractId, escrowTxId) Warranty
+        +generatePdf() String
+    }
+
+    class QuoteLead {
+        +UUID id
+        +UUID buyerCompanyId
+        +String robotModel
+        +Int quantity
+        +Int termMonths
+        +String contactName
+        +String contactEmail
+        +String contactPhone
+        +Enum~pending|in_progress|responded|closed~ status
+        +JSONB responseData
+        +Timestamp adminRespondedAt
+        +Timestamp createdAt
+        +submit(data) QuoteLead
+        +respond(responseData) void
+        +close() void
+    }
+
     BuyerCompany "1" --> "0..*" Contract : places
     SiPartner "1" --> "0..*" Contract : fulfills
     Contract "1" --> "1" EscrowTx : protectedBy
@@ -1131,10 +1224,12 @@ classDiagram
     SiPartner "1" --> "0..*" Badge : holds
     SiPartner "1" --> "1" SiProfile : has
     BuyerCompany "1" --> "0..*" O2oBooking : requests
+    BuyerCompany "1" --> "0..*" QuoteLead : submits
     Manufacturer "1" --> "0..*" PartnerProposal : sends
     SiPartner "1" --> "0..*" PartnerProposal : receives
     PartnerProposal ..> Badge : creates on accept
-    EscrowTx ..> AsTicket : guarantees AS via warranty
+    Contract "1" --> "1" Warranty : guarantees
+    EscrowTx ..> Warranty : triggers issuance
 ```
 
 ### 6.3 Detailed Interaction Models (상세 시퀀스 다이어그램)
