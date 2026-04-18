@@ -1,9 +1,10 @@
 # Software Requirements Specification (SRS)
 
 **Document ID:** SRS-001
-**Revision:** 1.1
-**Date:** 2026-04-15
+**Revision:** 1.1 (v0.3)
+**Date:** 2026-04-18
 **Standard:** ISO/IEC/IEEE 29148:2018
+**Change Log:** v0.2 → v0.3 기술 스택 정합성 전환 (C-TEC-001~007 적용, PLAN-SRS-v0.3-TECH-ALIGN 준거)
 
 ---
 
@@ -52,16 +53,23 @@
 | CON-08 | 결제 데이터는 PCI-DSS Level 1을 준수한다 (PG사 위임) | 보안 요구 |
 | CON-09 | 개인정보보호법 준수 및 ISMS-P 인증을 MVP+12개월 내 취득한다 | 보안 요구 |
 | CON-10 | MVP 인프라 비용은 월 500만 원 이하로 유지한다 | 비용 목표 |
+| CON-11 | 모든 서비스는 Next.js (App Router) 기반의 단일 풀스택 프레임워크로 구현한다. 프론트엔드와 백엔드를 별도 분리하지 않는다 | C-TEC-001 |
+| CON-12 | 서버 측 로직은 Next.js Server Actions 또는 Route Handlers로 구현하며, 별도 백엔드 서버를 두지 않는다 | C-TEC-002 |
+| CON-13 | 데이터베이스는 Prisma ORM을 사용하며, 로컬 개발은 SQLite, 배포 환경은 Supabase (PostgreSQL)를 사용한다 | C-TEC-003 |
+| CON-14 | UI/스타일링은 Tailwind CSS + shadcn/ui로 통일한다 | C-TEC-004 |
+| CON-15 | LLM 오케스트레이션은 Vercel AI SDK + Google Gemini API로 구현하며, 환경 변수를 통해 모델 교체가 가능해야 한다 | C-TEC-005, C-TEC-006 |
+| CON-16 | 배포 및 인프라는 Vercel 플랫폼으로 단일화하며, Git Push → 자동 배포를 강제한다 | C-TEC-007 |
+| CON-17 | Vercel Pro 플랜을 기준으로 하며, Serverless Function 실행 시간 60초, Cron 최소 주기 1분을 활용한다 | C-TEC-007 (운영 요건) |
 
 #### 1.2.4 Assumptions (가정)
 
 | ID | 가정 | 검증 방안 | 검증 시한 |
 |:---:|:---|:---|:---|
-| ASM-01 | PG사 에스크로 API가 B2B 고액 거래(건당 1억 원 이상)를 지원한다 | 토스페이먼츠/나이스 B2B 에스크로 API 기술 문서 검토 + 테스트 계정으로 1억 원 이상 모의 결제 시도. 한도 제약 시 분할 결제 구조 PoC 수행 | D-60일 |
-| ASM-02 | 로봇 제조사(UR, 두산, 레인보우 등) 최소 3사가 뱃지 프로그램에 참여한다 | 각 제조사 채널 영업 담당에게 파트너십 제안서 발송 후 LOI(의향서) 회수. 뱃지 프로그램 혜택(검색 상단 노출, 파트너 매칭 우선)을 명시한 1-pager 제공 | D-90일 LOI |
-| ASM-03 | NICE 평가정보 API를 통한 SI 업체 재무 등급 조회가 법적으로 가능하다 | 외부 법률사무소에 B2B 신용조회 서비스의 개인정보보호법·신용정보법 적법성 검토 의뢰. NICE 담당과 이용 약관 협의 | D-60일 법률 검토 |
-| ASM-04 | 로컬 AS 사업자가 24시간 SLA에 동의하고 계약 가능하다 | 수도권 5대 산단 소재 AS 사업자 5개사에 SLA 조건 포함 계약서 초안 발송 + 간담회 1회 개최. SLA 위약금 조항 수용 여부 확인 | D-30일 |
-| ASM-05 | MVP 동시 접속 규모는 500 CCU 이내이다 | MVP D-14일 Staging 환경에서 k6 또는 Locust를 활용한 500 CCU × 30분 부하 테스트 수행. p95 응답 시간, 에러율, CPU 사용률 확인 | 부하 테스트 (D-14) |
+| ASM-01 | PG사 에스크로 API가 B2B 고액 거래(건당 1억 원 이상)를 지원한다 | PG사 결제 연동 가이드 검토 및 기술 미팅 진행 | D-60일 |
+| ASM-02 | 로봇 제조사(UR, 두산, 레인보우 등) 최소 3사가 뱃지 프로그램에 참여한다 | 제조사 영업 담당자 미팅 및 LOI (참리의향서) 초안 발송 | D-90일 LOI |
+| ASM-03 | NICE 평가정보 API를 통한 SI 업체 재무 등급 조회가 법적으로 가능하다 | 플랫폼 서비스 구조 기반 법률 자문 및 API 이용 약관 검토 | D-60일 법률 검토 |
+| ASM-04 | 로컬 AS 사업자가 24시간 SLA에 동의하고 계약 가능하다 | 수도권 핵심 산단 주변 AS 업체 대상 수요 조사 및 초기 파트너 확보 | D-30일 |
+| ASM-05 | MVP 동시 접속 규모는 500 CCU 이내이다 | k6/Locust 도구를 활용한 가상의 부하 발생 시뮬레이션 | 부하 테스트 |
 
 ### 1.3 Definitions, Acronyms, Abbreviations
 
@@ -100,11 +108,9 @@
 
 | ID | 문서명 | 설명 |
 |:---:|:---|:---|
-| REF-01 | `1_PRD-Robot-SI-Platform-v0.1.md` (v0.2) | 본 SRS의 원천 PRD 문서. 모든 비즈니스 분석, 인터뷰 근거, 시장 데이터, 전략 분석을 포함 |
+| REF-01 | `1_PRD-Robot-SI-Platform-v0.1.md` (v0.2) | 본 SRS의 유일한 원천 비즈니스 요구사항 및 기획 문서 |
 | REF-02 | ISO/IEC/IEEE 29148:2018 | Systems and software engineering — Life cycle processes — Requirements engineering |
-| REF-03 | 전자금융거래법 | 거래·결제 데이터 5년 보존 의무 |
-
-> **참고:** JTBD 인터뷰 근거(PRD 9.1절), 시장 규모 데이터(PRD 9.2절), Porter's 5 Forces·KSF·AOS-DOS 전략 분석(PRD 9.3절), 품질 리뷰 이력(PRD 서문)은 모두 PRD v0.2 (REF-01) 내에 직접 포함되어 있다. 별도 문서 참조를 제거하고 PRD 단일 원천 구조로 통합하였다.
+| REF-03 | 전자금융거래법 | 거래·결제 데이터 5년 보존 의무 등 규제 요건 참조 |
 
 ---
 
@@ -129,67 +135,61 @@
 
 | ID | 외부 시스템 | 인터페이스 | 프로토콜 | 역할 | 제약 사항 |
 |:---:|:---|:---|:---:|:---|:---|
-| EXT-01 | PG 에스크로 (토스페이먼츠/나이스) | REST API | HTTPS (TLS 1.3) | 계약금 에스크로 예치·방출·환불 처리. 플랫폼 자금 보관 회피(ADR-001) | PCI-DSS Level 1, 타임아웃 10초, B2B 고액 거래(건당 1억 원+) 지원 필요 |
-| EXT-02 | NICE 평가정보 (기업 신용정보) | REST API | HTTPS (TLS 1.3) | SI 파트너의 재무 등급·신용 점수 조회. 평판 뷰어 재무 섹션 데이터 원천 | 조회 건당 과금, 일일 한도 500건, 캐시 TTL 30일 |
-| EXT-03 | 카카오 알림톡 | REST API | HTTPS | 검수 요청·예약 확인·AS 배정 등 주요 이벤트의 카카오톡 실시간 알림 발송 | 건당 10원, 초당 100건 제한 |
-| EXT-04 | SMS 발송 서비스 | REST API | HTTPS | 카카오톡 수신 불가 사용자를 위한 보조 알림 채널. 카카오 알림톡과 이중 발송 구조 | 건당 20원 이하 |
-| EXT-05 | 금융 파트너 API (RaaS/리스) | REST API | HTTPS (TLS 1.3) | RaaS 구독 시 보증금·월납입금·금리 정보 실시간 조회. 비용 비교 계산기의 금융 연결 기능 지원 | 응답 시간 5초 이내, 장애 시 이메일 견적 대안 경로 제공 |
+| EXT-01 | PG 에스크로 (토스페이먼츠/나이스) | REST API | HTTPS (TLS 1.3) | 계약금 예치 및 조건부 자금 방출 결제 대행 | PCI-DSS Level 1, 타임아웃 10초, B2B 고액 거래(건당 1억 원+) 지원 필요 |
+| EXT-02 | NICE 평가정보 (기업 신용정보) | REST API | HTTPS (TLS 1.3) | SI 업체의 재무/신용 등급 실시간 조회 | 조회 건당 과금, 일일 한도 500건, 캐시 TTL 30일 |
+| EXT-03 | 카카오 알림톡 | REST API | HTTPS | 알림톡 템플릿 기반 실시간 메시지 발송 | 건당 10원, 초당 100건 제한 |
+| EXT-04 | SMS 발송 서비스 | REST API | HTTPS | 알림톡 실패 시 Fallback 문자 메시지 발송 | 건당 20원 이하 |
+| EXT-05 | 금융 파트너 API (RaaS/리스) | REST API | HTTPS (TLS 1.3) | 로봇 구독 및 리스 금융 상품 비용 견적 제공 | 응답 시간 5초 이내, 장애 시 이메일 견적 대안 경로 제공 |
 
-#### 3.1.0 외부 서비스 비가용 시 임시 우회 전략 (Fallback Strategy)
-
-외부 시스템이 일시적으로 비가용할 경우, MVP 기능 연속성을 확보하기 위해 아래의 내부 데이터 기반 임시 우회 전략을 적용한다.
-
-| 외부 시스템 | 비가용 상황 | 우회 전략 | 사용자 안내 | 자동 복구 |
-|:---|:---|:---|:---|:---|
-| **EXT-01** PG 에스크로 | PG API 타임아웃(>10초) 또는 5xx 오류 | ① 자동 재시도 1회 실행. ② 최종 실패 시 `ESCROW_TX` 테이블에 `state=pending_retry`로 기록, CS 접수 유도 팝업 표시. 결제 자체 대행은 불가하므로 PG 복구 후 수동 재처리 | 실패 사유 안내(≤2초) + CS 접수 유도 | PG 복구 감지 시 `pending_retry` 건 Ops 알림 발송 |
-| **EXT-02** NICE 평가정보 | API 5xx 장애 또는 일일 한도(500건) 소진 | 내부 DB 캐시(TTL 30일)에 저장된 최근 재무 등급 데이터를 표시. 일일 배치 갱신으로 사전 확보된 캐시 데이터 활용 | "실시간 조회 불가" 안내 배너 + 캐시 데이터 갱신일 YYYY-MM-DD 표시 | 잔여 한도 회복 또는 장애 해소 시 자동 실시간 모드 복귀 |
-| **EXT-03** 카카오 알림톡 | 카카오 서버 장애 또는 발송 실패 | SMS 발송 서비스(EXT-04)로 자동 전환하여 동일 내용 발송. SMS도 실패 시 이메일 채널로 2차 폴백 | 사용자에게 별도 안내 없음 (백엔드 자동 전환) | 카카오 복구 시 자동 기본 채널 복귀 |
-| **EXT-04** SMS 발송 | SMS 게이트웨이 장애 | 카카오 알림톡(EXT-03)을 단독 채널로 사용. 카카오도 불가 시 이메일 단일 채널 대안 | 사용자에게 별도 안내 없음 (백엔드 자동 전환) | SMS 복구 시 이중 발송 모드 자동 복귀 |
-| **EXT-05** 금융 파트너 API | 타임아웃(>5초) 또는 HTTP 5xx | ① 30초 후 자동 재시도 1회. ② 최종 실패 시 사전 확보된 기본 금리·보증금 테이블(내부 DB)로 '참고용 예상치' 표시. 정확한 견적은 '이메일 견적 수신' 대안 경로 제공 | "금융 연결 일시 지연" 토스트(≤1초) + 참고용 예상치 표시 또는 이메일 견적 경로 | 금융 API 복구 시 자동 실시간 모드 복귀 |
+**외부 시스템 장애 시 임시 우회 전략 (Fallback Strategy)**
+* **EXT-02 (NICE 평가정보 API):** 일일 호출 한도 초과 또는 API 장애(5xx 에러) 발생 시, 기 확보된 **내부 데이터베이스 (DB Cache)** 의 최신 데이터를 기본값으로 반환한다. 만약 캐시도 없는 신규 업체의 경우 시스템에 내장된 '디폴트 더미 데이터(기본 중립 등급, 정보 없음 상태)'를 노출하며, 플랫폼 화면에 "실시간 조회 지연으로 인한 과거 데이터 노출" 임을 명시한다.
+* **EXT-05 (금융 파트너 API):** 외부 시스템 장애 시 API 자동 연결을 멈추고, 관리자가 미리 등록해 둔 **고정 견적 테이블 (DB)** 을 참조하여 추산된 예상 비용을 우선 표시한다. 이마저 불가능할 경우 시스템은 사용자에게 "이메일 견적 요청" 폼(더미 폼) 화면으로 대체 제공하여 수기 견적 체제로 우회한다.
+* **EXT-03, EXT-04 (알림 시스템):** 카카오톡 및 외부 SMS 발송망에 장애가 생기면, 주요 알림(결제 완료, 방문 일정 등)은 1차적으로 **플랫폼 내장 웹 알림함(DB 기반 알림)** 과 연결된 메일 서버(SMTP)를 통한 비동기 이메일로 우회 처리한다.
 
 #### 3.1.1 System Component Diagram
 
-플랫폼을 구성하는 내부 컴포넌트, 클라이언트 애플리케이션, 외부 연동 시스템 간의 구조적 관계를 도식화한다.
+Next.js (App Router) 풀스택 아키텍처 기반의 내부 모듈 구성과 외부 연동 시스템 간의 구조적 관계를 도식화한다. 별도의 BFF/API Gateway 없이 Server Components, Server Actions, Route Handlers를 활용한 단일 프레임워크 구조이다.
 
 ```mermaid
 graph TB
-    subgraph Clients ["클라이언트 애플리케이션"]
-        CLI01["Buyer Portal\n(반응형 웹)"]
-        CLI02["SI Partner Portal\n(반응형 웹)"]
-        CLI03["Manufacturer Portal\n(반응형 웹)"]
-        CLI04["Admin Dashboard\n(웹)"]
+    subgraph NextApp ["Next.js App (Vercel)"]
+        subgraph Pages ["App Router (Pages & Layouts)"]
+            P_BUYER["Buyer Portal\n/buyer/*"]
+            P_SI["SI Partner Portal\n/partner/*"]
+            P_MFR["Manufacturer Portal\n/manufacturer/*"]
+            P_ADMIN["Admin Dashboard\n/admin/*"]
+        end
+
+        subgraph ServerLogic ["Server-side Logic"]
+            SA["Server Actions\n(쓰기: 결제요청, 검수승인,\n뱃지발급, AS접수 등)"]
+            SC["Server Components\n(읽기: 프로필조회, 검색,\n대시보드 렌더링)"]
+            RH["Route Handlers /app/api/*\n(외부 API 연동, Webhook 수신,\nPDF 바이너리 응답)"]
+        end
+
+        subgraph DomainModules ["도메인 모듈 (lib/)"]
+            M_ESC["escrow/\n(결제 예치/방출/분쟁)"]
+            M_CONTRACT["contract/\n(계약/검수 관리)"]
+            M_AS["as-ticket/\n(티켓/배정/SLA)"]
+            M_WARRANTY["warranty/\n(보증서 자동발급)"]
+            M_SEARCH["search/\n(SI 검색/필터, p95≤1s)"]
+            M_PROFILE["profile/\n(프로필/뱃지 관리)"]
+            M_CREDIT["credit/\n(NICE 캐시, TTL=30d)"]
+            M_RAAS["raas/\n(3옵션 비교 계산)"]
+            M_PDF["pdf/\n(jsPDF 기반 리포트 생성)"]
+            M_NOTI["notification/\n(SMS + 카카오 발송)"]
+        end
+
+        CRON["Vercel Cron Jobs\n(뱃지만료 스캔/NICE배치갱신/\n검수기한 만료/SLA 모니터링)"]
+        AI["Vercel AI SDK\n(Google Gemini API)"]
+        AUTH["NextAuth.js / Supabase Auth\n(OAuth 2.0 + TOTP MFA)"]
     end
 
-    subgraph Platform ["플랫폼 백엔드 (Cloud)"]
-        BFF["BFF / API Gateway\n(TLS 1.3, OAuth 2.0)"]
-
-        subgraph CoreServices ["핵심 도메인 서비스"]
-            SVC_ESC["Escrow Service\n(결제 예치/방출/분쟁)"]
-            SVC_CONTRACT["Contract Service\n(계약/검수 관리)"]
-            SVC_AS["AS Ticket Service\n(티켓/배정/SLA)"]
-            SVC_WARRANTY["Warranty Service\n(보증서 자동발급)"]
-        end
-
-        subgraph MatchingServices ["매칭/평판 서비스"]
-            SVC_SEARCH["SI Search Engine\n(필터/정렬, p95≤1s)"]
-            SVC_PROFILE["Profile & Badge\nService"]
-            SVC_CREDIT["Credit Cache\nService (TTL=30d)"]
-        end
-
-        subgraph FinanceServices ["비용 분석 서비스"]
-            SVC_RAAS["RaaS Calculator\n(3옵션 비교)"]
-            SVC_PDF["PDF Generator\n(리포트/비교표, p95≤5s)"]
-        end
-
-        subgraph InfraServices ["공통 인프라"]
-            SVC_AUTH["Auth Service\n(OAuth 2.0 + MFA)"]
-            SVC_NOTI["Notification Service\n(SMS + 카카오)"]
-            SVC_MON["Monitoring & Alerting\n(Datadog, PagerDuty)"]
-            SVC_BATCH["Batch Scheduler\n(뱃지만료/NICE갱신)"]
-        end
-
-        DB[("Database\n(PostgreSQL)")]
-        CACHE[("Cache\n(Redis)")]
+    subgraph DB ["데이터베이스"]
+        PRISMA["Prisma ORM"]
+        SUPA["Supabase (PostgreSQL)\n— 배포 환경"]
+        SQLITE["SQLite\n— 로컬 개발"]
+        PRISMA --> SUPA
+        PRISMA -.->|로컬| SQLITE
     end
 
     subgraph External ["외부 시스템"]
@@ -198,29 +198,28 @@ graph TB
         EXT_KAKAO["카카오 알림톡\n(건당 10원)"]
         EXT_SMS["SMS Gateway\n(건당 ≤20원)"]
         EXT_FIN["금융파트너 API\n(RaaS/리스 견적)"]
+        EXT_GEMINI["Google Gemini API\n(LLM)"]
     end
 
-    CLI01 & CLI02 & CLI03 & CLI04 -->|HTTPS| BFF
+    Pages --> SC & SA
+    SA --> DomainModules
+    SC --> DomainModules
+    RH --> DomainModules
+    CRON --> DomainModules
+    DomainModules --> PRISMA
 
-    BFF --> SVC_ESC & SVC_CONTRACT & SVC_AS & SVC_WARRANTY
-    BFF --> SVC_SEARCH & SVC_PROFILE & SVC_CREDIT
-    BFF --> SVC_RAAS & SVC_PDF
-    BFF --> SVC_AUTH
+    M_ESC -->|REST| EXT_PG
+    M_CREDIT -->|REST| EXT_NICE
+    M_NOTI -->|REST| EXT_KAKAO
+    M_NOTI -->|REST| EXT_SMS
+    M_RAAS -->|REST| EXT_FIN
+    AI -->|REST| EXT_GEMINI
 
-    SVC_ESC -->|REST| EXT_PG
-    SVC_CREDIT -->|REST| EXT_NICE
-    SVC_NOTI -->|REST| EXT_KAKAO
-    SVC_NOTI -->|REST| EXT_SMS
-    SVC_RAAS -->|REST| EXT_FIN
+    AUTH --> SUPA
 
-    SVC_ESC & SVC_CONTRACT & SVC_AS & SVC_PROFILE --> DB
-    SVC_CREDIT --> CACHE
-    SVC_BATCH --> DB & CACHE & EXT_NICE
-    SVC_MON --> SVC_ESC & SVC_AS & SVC_RAAS
-
-    SVC_WARRANTY -.->|trigger| SVC_ESC
-    SVC_AS -.->|배정| SVC_NOTI
-    SVC_PROFILE -.->|뱃지 만료| SVC_BATCH
+    M_WARRANTY -.->|trigger| M_ESC
+    M_AS -.->|알림| M_NOTI
+    M_PROFILE -.->|만료 스캔| CRON
 ```
 
 ### 3.2 Client Applications
@@ -314,20 +313,20 @@ graph LR
 
 ### 3.3 API Overview
 
-| API ID | API 명 | 방향 | 입력 (Input) | 출력 (Output) | 제약 |
-|:---:|:---|:---:|:---|:---|:---|
-| API-01 | PG 에스크로 결제 | 외부 (Outbound) | 계약 ID, 금액, 결제 수단 | 에스크로 TX ID, 상태 | PCI-DSS, 타임아웃 10초 |
-| API-02 | PG 에스크로 자금 방출 | 외부 (Outbound) | 에스크로 TX ID, 검수 승인 정보 | 방출 상태, 완료 시각 | 검수 승인 후 24시간 내 |
-| API-03 | NICE 기업 신용정보 조회 | 외부 (Outbound) | 사업자등록번호 | 재무 등급, 신용 점수 | 일일 한도 500건, 건당 과금 |
-| API-04 | 카카오 알림톡 발송 | 외부 (Outbound) | 수신 번호, 템플릿 ID, 변수 | 발송 결과 | 건당 10원, 초당 100건 |
-| API-05 | SMS 발송 | 외부 (Outbound) | 수신 번호, 메시지 내용 | 발송 결과 | 건당 20원 이하 |
-| API-06 | 금융 파트너 RaaS 견적 | 외부 (Outbound) | 로봇 모델, 수량, 기간 | 보증금, 월납입금, 금리 정보 | 응답 5초 이내, 장애 시 대안 경로 |
-| API-07 | SI 검색 및 필터 | 내부 | 지역, 브랜드, 역량 태그 | SI 목록 (정렬·페이지네이션) | p95 ≤ 1초 |
-| API-08 | RaaS 비용 계산 엔진 | 내부 | 로봇 모델, 수량, 계약 기간 | 3옵션 비교 JSON (일시불·리스·RaaS) | 금융 파트너 API 의존 |
-| API-09 | 기안 리포트 PDF 생성 | 내부 | SI 파트너 ID | PDF 바이너리 (재무·기술·인증·리뷰 4섹션) | p95 ≤ 5초 |
-| API-10 | 뱃지 발급/관리 | 내부 | 제조사 ID, SI 파트너 ID, 만료일 | 뱃지 상태 | 반영 ≤ 1시간 |
-| API-11 | AS 티켓 접수/배정 | 내부 | 계약 ID, 긴급도, 증상 설명 | 티켓 ID, 배정 AS 엔지니어 | 배정 ≤ 4시간 |
-| API-12 | 보증서 발급 | 내부 | 에스크로 TX ID, 계약 ID | 보증서 PDF/디지털 문서 | 발급 ≤ 1분 |
+| API ID | API 명 | 방향 | 구현 방식 (Next.js) | 입력 (Input) | 출력 (Output) | 제약 |
+|:---:|:---|:---:|:---|:---|:---|:---|
+| API-01 | PG 에스크로 결제 | 외부 (Outbound) | Route Handler (`/app/api/escrow/deposit`) | 계약 ID, 금액, 결제 수단 | 에스크로 TX ID, 상태 | PCI-DSS, 타임아웃 10초 |
+| API-02 | PG 에스크로 자금 방출 | 외부 (Outbound) | Route Handler (`/app/api/escrow/release`) | 에스크로 TX ID, 검수 승인 정보 | 방출 상태, 완료 시각 | 검수 승인 후 24시간 내 |
+| API-03 | NICE 기업 신용정보 조회 | 외부 (Outbound) | Route Handler (`/app/api/credit/query`) | 사업자등록번호 | 재무 등급, 신용 점수 | 일일 한도 500건, 건당 과금 |
+| API-04 | 카카오 알림톡 발송 | 외부 (Outbound) | Route Handler (`/app/api/notifications/kakao`) | 수신 번호, 템플릿 ID, 변수 | 발송 결과 | 건당 10원, 초당 100건 |
+| API-05 | SMS 발송 | 외부 (Outbound) | Route Handler (`/app/api/notifications/sms`) | 수신 번호, 메시지 내용 | 발송 결과 | 건당 20원 이하 |
+| API-06 | 금융 파트너 RaaS 견적 | 외부 (Outbound) | Route Handler (`/app/api/raas/finance`) | 로봇 모델, 수량, 기간 | 보증금, 월납입금, 금리 정보 | 응답 5초 이내, 장애 시 대안 경로 |
+| API-07 | SI 검색 및 필터 | 내부 | Server Component + Prisma 직접 쿼리 | 지역, 브랜드, 역량 태그 | SI 목록 (정렬·페이지네이션) | p95 ≤ 1초 |
+| API-08 | RaaS 비용 계산 엔진 | 내부 | Server Action (`calculateRaasOptions`) | 로봇 모델, 수량, 계약 기간 | 3옵션 비교 JSON (일시불·리스·RaaS) | 금융 파트너 API 의존 |
+| API-09 | 기안 리포트 PDF 생성 | 내부 | Route Handler (`/app/api/reports/pdf`) — 바이너리 응답 | SI 파트너 ID | PDF 바이너리 (재무·기술·인증·리뷰 4섹션) | p95 ≤ 5초 |
+| API-10 | 뱃지 발급/관리 | 내부 | Server Action (`issueBadge`, `revokeBadge`) | 제조사 ID, SI 파트너 ID, 만료일 | 뱃지 상태 | 반영 ≤ 1시간 |
+| API-11 | AS 티켓 접수/배정 | 내부 | Server Action (`createAsTicket`, `assignEngineer`) | 계약 ID, 긴급도, 증상 설명 | 티켓 ID, 배정 AS 엔지니어 | 배정 ≤ 4시간 |
+| API-12 | 보증서 발급 | 내부 | Route Handler (`/app/api/warranty/issue`) — PDF 바이너리 | 에스크로 TX ID, 계약 ID | 보증서 PDF/디지털 문서 | 발급 ≤ 1분 |
 
 ### 3.4 Interaction Sequences (핵심 시퀀스 다이어그램)
 
@@ -336,7 +335,7 @@ graph LR
 ```mermaid
 sequenceDiagram
     participant B as 수요기업(Buyer)
-    participant P as 플랫폼
+    participant P as 플랫폼(Next.js)
     participant PG as PG사(에스크로)
     participant SI as SI파트너
 
@@ -383,7 +382,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant B as 수요기업(Buyer)
-    participant P as 플랫폼
+    participant P as 플랫폼(Next.js)
     participant NICE as NICE평가정보
     participant MFR as 제조사
 
@@ -416,7 +415,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant B as 수요기업(Buyer)
-    participant P as 플랫폼
+    participant P as 플랫폼(Next.js)
     participant OPS as 운영팀
     participant AS as 로컬AS엔지니어
 
@@ -438,41 +437,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant MFR as 제조사
-    participant P as 플랫폼
+    participant P as 플랫폼(Next.js)
     participant SI as SI파트너
-    participant BATCH as 배치 스캐너
 
-    Note over MFR,SI: === 뱃지 발급 ===
-    MFR->>P: 인증 뱃지 발급 요청 (SI ID, 만료일)
-    P->>P: BADGE INSERT (is_active=true, expires_at 설정)
-    P-->>MFR: 발급 완료 확인
-    P-->>SI: 뱃지 발급 알림
-    Note over P: ≤1시간 내 SI 프로필에 뱃지 반영
-
-    Note over MFR,SI: === 만료 관리 ===
-    BATCH->>P: 일일 배치 - 만료 D-7 뱃지 스캔
-    P-->>SI: 만료 안내 이메일 + 내부 알림
-
-    alt 만료일 도래
-        BATCH->>P: BADGE UPDATE (is_active=false)
-        Note over P: SI 프로필에서 ≤10분 내 자동 비노출
-    else 제조사 철회
-        MFR->>P: 뱃지 철회 요청
-        P->>P: BADGE UPDATE (is_active=false, revoked_at)
-        Note over P: SI 프로필에서 ≤10분 내 자동 비노출
+    MFR->>P: SI 기업에 파트너십 제안
+    P-->>SI: 제안 알림 발송
+    
+    alt SI 수락
+        SI->>P: 제안 수락
+        P->>P: 제조사 공식 인증 뱃지 발급
+        P-->>MFR: 수락 알림 및 대시보드 갱신
+        P-->>SI: 프로필 내 뱃지 활성화 노출
+    else 5영업일 만료 (미응답)
+        P->>P: 자동 만료 처리
+        P-->>MFR: 미응답 알림 및 대안 SI 3개사 추천
     end
 
-    Note over MFR,SI: === 파트너 제안 ===
-    MFR->>P: SI에게 파트너 제안 발송
-    P-->>SI: 파트너 제안 알림 (≤3초)
-    alt SI 수락 (≤5영업일)
-        SI->>P: 제안 수락
-        P->>P: BADGE INSERT (파트너십 뱃지)
-        P-->>MFR: 수락 알림 + 대시보드 갱신
-    else SI 미응답 (D+5 만료)
-        BATCH->>P: 만료 제안 스캔
-        P->>P: D+3 리마인더 발송
-        P-->>MFR: 미응답 종료 + 대안 SI 3개사 추천 (≤1분)
+    opt 제조사 철회 또는 뱃지 기간 만료
+        P->>P: 만료 시스템 배치 감지 / 제조사 철회 버튼
+        P->>P: 뱃지 비활성화
+        P-->>SI: 프로필 노출 즉시 삭제
     end
 ```
 
@@ -480,57 +464,40 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant U as 사용자(SME대표)
-    participant P as 플랫폼
-    participant CALC as RaaS계산엔진
+    participant U as 수요기업
+    participant P as 플랫폼(Next.js RaaS엔진)
 
-    U->>P: 로봇 모델·수량·계약 기간 입력
-    P->>P: 클라이언트 유효성 검증
-
-    alt 유효하지 않은 입력 (모델 코드 미존재 or 수량 0 이하)
-        P-->>U: 인라인 에러 메시지 (≤200ms)
-        P-->>U: 유사 모델 추천 3건 표시
-        Note over P: API 호출 차단
-    else 유효한 입력
-        U->>P: '비교 계산' 버튼 클릭
-        P->>CALC: 3옵션 비교 계산 (일시불, 리스, RaaS)
-        CALC-->>P: 비교 결과 JSON
-        P-->>U: 3옵션 비용 비교 결과 렌더링 (≤2초)
-
-        opt PDF 다운로드 요청
-            U->>P: '결과 PDF 내려받기' 클릭
-            P->>P: PDF 생성 (ROI그래프, 월비용테이블, TCO비교)
-            P-->>U: PDF 다운로드 (≤3초)
-        end
+    U->>P: 로봇 모델, 수량, 계약 기간 입력 후 계산 요청
+    P->>P: 계산 엔진 실행 및 유효성 검사 (음수/0 확인)
+    
+    P-->>U: 일시불 vs 리스 vs RaaS 3개 옵션 비교 렌더링 (≤2초)
+    
+    opt PDF 다운로드 요청
+        U->>P: 비용 비교 결과 PDF 생성 요청
+        P->>P: TCO 비교 테이블 및 ROI 그래프 포함하여 PDF 버퍼 생성
+        P-->>U: PDF 파일 다운로드
     end
 ```
 
-#### 3.4.6 RaaS 구독 금융 연결 흐름
+#### 3.4.6 RaaS 구독 흐름
 
 ```mermaid
 sequenceDiagram
-    participant U as 사용자(SME대표)
-    participant P as 플랫폼
-    participant FIN as 금융파트너API
-
-    Note over U,FIN: === 비용 비교 결과 확인 후 ===
-    U->>P: 특정 RaaS 플랜 선택 + 금융 연결 요청
-    P->>FIN: 금융 파트너 API 호출
-
-    alt 정상 응답 (≤5초)
-        FIN-->>P: 보증금, 월납입금, 금리 정보
-        P-->>U: 보증금·월납입금·금리 100% 표시
-    else 타임아웃 (>5초) or HTTP 5xx
-        FIN-->>P: TIMEOUT/5xx
-        P->>P: finance_api_failed 이벤트 로그
-        P-->>U: "금융 연결 일시 지연" 토스트 (≤1초)
-        P->>P: 30초 대기 후 자동 재시도 1회
-        alt 재시도 성공
-            FIN-->>P: 금융 정보
-            P-->>U: 금융 정보 표시
-        else 최종 실패
-            P-->>U: '이메일 견적 수신' 대안 경로 제공
-        end
+    participant U as 수요기업
+    participant P as 플랫폼(Next.js)
+    participant FIN as 금융 파트너(금융사 API)
+    
+    U->>P: 계산기 결과 중 'RaaS 구독' 옵션 선택
+    P->>FIN: 구독 기간, 모델 기반 금융 견적 요청 API (EXT-05)
+    
+    alt API 정상
+        FIN-->>P: 보증금, 월 납입금, 적용 금리 금리 수신
+        P-->>U: 금융 데이터 표시
+        U->>P: RaaS 구독 계약 진행 요청
+        P->>P: SI 자동 매칭 및 RaaS 구독 계약 폼 제공
+    else API 장애 또는 타임아웃
+        FIN-->>P: 타임아웃 에러
+        P-->>U: "이메일 견적 요청" (더미 폼) 우회 플로우 제공
     end
 ```
 
@@ -600,7 +567,7 @@ sequenceDiagram
 
 | Req ID | 요구사항 | Source | Priority | Acceptance Criteria |
 |:---:|:---|:---:|:---:|:---|
-| REQ-FUNC-027 | 시스템은 수요 기업의 회원가입 및 온보딩 프로세스를 제공해야 한다 | F-03, F-04 (KPI: 신규 수요 기업 가입 수) | Must | **Given** 신규 수요 기업 담당자가 가입 페이지에 접근함 **When** 필수 정보(회사명, 사업자등록번호, 지역, 담당자 정보)를 입력하고 가입을 완료함 **Then** `signup_complete` 이벤트가 Amplitude에 기록되고, 대시보드에서 집계됨 |
+| REQ-FUNC-027 | 시스템은 수요 기업의 회원가입 및 온보딩 프로세스를 제공해야 한다 | F-03, F-04 (KPI: 신규 수요 기업 가입 수) | Must | **Given** 신규 수요 기업 담당자가 가입 페이지에 접근함 **When** 필수 정보(회사명, 사업자등록번호, 지역, 담당자 정보)를 입력하고 가입을 완료함 **Then** `signup_complete` 이벤트가 Vercel Analytics (DB 이벤트 로그)에 기록되고, 대시보드에서 집계됨 |
 | REQ-FUNC-028 | 시스템은 SI 파트너의 회원가입 및 프로필 등록 프로세스를 제공해야 한다 | F-03, F-04 | Must | **Given** SI 파트너가 가입 페이지에 접근함 **When** 회사 정보·시공 이력·역량 태그를 등록함 **Then** SI 프로필이 생성되고, Admin 검토 대기 상태로 전환됨 |
 | REQ-FUNC-029 | 시스템은 지역·브랜드·역량 태그 기반의 SI 파트너 검색 및 필터링 기능을 제공해야 한다 | Story 5 (AC-5.1), F-03, F-04 | Must | **Given** 제조사 또는 수요 기업이 브랜드·지역·역량 필터를 설정함 **When** 검색을 실행함 **Then** 결과 반환 ≤ 1초 (p95), 결과에 뱃지 보유 여부·성공률·지역이 명시됨 |
 
@@ -616,10 +583,10 @@ sequenceDiagram
 
 | Req ID | 요구사항 | Source | Priority | Acceptance Criteria |
 |:---:|:---|:---:|:---:|:---|
-| REQ-FUNC-033 | 시스템은 에스크로 결제 실패율이 연속 5분간 0.5% 초과 시 PagerDuty 알림을 자동 발송해야 한다 | NFR 5.5 | Must | **Given** 에스크로 결제 실시간 트랜잭션이 모니터링 중임 **When** 실패율 > 0.5%가 연속 5분 지속 **Then** PagerDuty 알림이 자동 발송됨 |
+| REQ-FUNC-033 | 시스템은 에스크로 결제 실패율이 연속 5분간 0.5% 초과 시 Slack Webhook 알림을 자동 발송해야 한다 | NFR 5.5 | Must | **Given** 에스크로 결제 실시간 트랜잭션이 모니터링 중임 **When** 실패율 > 0.5%가 연속 5분 지속 **Then** Slack Webhook 알림이 자동 발송됨 |
 | REQ-FUNC-034 | 시스템은 AS 티켓이 24시간 미배정 시 Slack 즉시 알림을 발송해야 한다 | NFR 5.5 | Must | **Given** AS 티켓이 접수되어 배정 대기 중임 **When** 접수 후 24시간이 경과하여도 미배정 상태 **Then** Ops Slack 채널에 즉시 알림 발송 |
 | REQ-FUNC-035 | 시스템은 RaaS 계산 엔진 API의 p95 응답 시간이 연속 10분간 3초 초과하거나, 금융 API 실패율이 5% 초과 시 Eng 및 Biz팀에 동시 알림을 발송해야 한다 | NFR 5.5 | Must | **Given** RaaS 계산 엔진 API가 운영 중임 **When** p95 응답 > 3초 연속 10분 또는 금융 API 실패율 > 5% **Then** Eng + Biz 동시 알림 발송 |
-| REQ-FUNC-036 | 시스템은 페이지 성능(LCP)의 p95가 연속 1시간 동안 3초를 초과할 때 Eng 알림을 발송해야 한다 | NFR 5.5 | Must | **Given** Datadog RUM / Core Web Vitals 모니터링이 활성 상태임 **When** LCP > 3초 p95가 연속 1시간 지속 **Then** Eng팀 알림 발송 |
+| REQ-FUNC-036 | 시스템은 페이지 성능(LCP)의 p95가 연속 1시간 동안 3초를 초과할 때 Eng 알림을 발송해야 한다 | NFR 5.5 | Must | **Given** Vercel Analytics / Core Web Vitals 모니터링이 활성 상태임 **When** LCP > 3초 p95가 연속 1시간 지속 **Then** Eng팀 알림 발송 |
 
 ---
 
@@ -629,12 +596,12 @@ sequenceDiagram
 
 | Req ID | 요구사항 | 측정 기준 | Source |
 |:---:|:---|:---|:---|
-| REQ-NF-001 | 시스템의 페이지 로딩 시간(LCP)은 p95 기준 2,000ms 이하여야 한다 | Datadog RUM Core Web Vitals 측정, p95 ≤ 2,000ms | PRD 5.1 |
+| REQ-NF-001 | 시스템의 페이지 로딩 시간(LCP)은 p95 기준 2,000ms 이하여야 한다 | Vercel Analytics Web Vitals 측정, p95 ≤ 2,000ms | PRD 5.1 |
 | REQ-NF-002 | 시스템의 API 응답 시간(검색·필터)은 p95 기준 1,000ms 이하여야 한다 | API Gateway 응답 로그 기준, p95 ≤ 1,000ms | PRD 5.1 |
 | REQ-NF-003 | 에스크로 결제 API(PG 연동) 응답 시간은 p95 기준 3,000ms 이하, 타임아웃은 10초 이하여야 한다 | PG API 호출 로그 기준, p95 ≤ 3,000ms, timeout ≤ 10s | PRD 5.1 |
 | REQ-NF-004 | PDF 리포트 생성 소요 시간은 p95 기준 5,000ms 이하여야 한다 | 서버 사이드 PDF 생성 로그, p95 ≤ 5,000ms | PRD 5.1 |
-| REQ-NF-005 | 시스템은 500 CCU (동시 접속 사용자) 이상을 지원해야 한다 | 부하 테스트 (k6 또는 Locust), 500 CCU × 30분 지속, p95 ≤ 임계치, 에러율 < 1%, CPU 평균 ≤ 70% | PRD 5.1 |
-| REQ-NF-006 | 부하 테스트는 MVP D-14 Staging 환경에서 k6 또는 Locust를 사용하여 500 CCU × 30분 지속 부하 조건으로 수행해야 한다 | 통과 기준: p95 ≤ 위 임계치, 에러율 < 1%, CPU 평균 ≤ 70% | PRD 5.1 |
+| REQ-NF-005 | 시스템은 500 CCU (동시 접속 사용자) 이상을 지원해야 한다 | 부하 테스트 (k6, Vercel Preview 환경), 500 CCU × 30분 지속, p95 ≤ 임계치, 에러율 < 1%, CPU 평균 ≤ 70% | PRD 5.1 |
+| REQ-NF-006 | 부하 테스트는 MVP D-14 Staging 환경에서 k6를 사용하여 Vercel Preview 환경에서 500 CCU × 30분 지속 부하 조건으로 수행해야 한다 | 통과 기준: p95 ≤ 위 임계치, 에러율 < 1%, CPU 평균 ≤ 70% | PRD 5.1 |
 
 #### 4.2.2 신뢰성·가용성 (Reliability & Availability)
 
@@ -654,7 +621,7 @@ sequenceDiagram
 |:---:|:---|:---|:---|
 | REQ-NF-014 | 결제 데이터 처리는 PCI-DSS Level 1을 준수해야 한다 (PG사 위임) | PG사 PCI-DSS 인증서 확인 | PRD 5.3 |
 | REQ-NF-015 | 개인정보 처리는 개인정보보호법을 준수하고, ISMS-P 인증을 MVP+12개월 내 취득해야 한다 | ISMS-P 인증 취득 여부, 취득 시한 MVP+12개월 | PRD 5.3 |
-| REQ-NF-016 | 사용자 인증은 OAuth 2.0을 적용하고, B2B 관리자 계정에 MFA(다중 인증)를 필수 적용해야 한다 | 인증 흐름 검증, B2B 관리자 계정 MFA 활성화율 100% | PRD 5.3 |
+| REQ-NF-016 | 사용자 인증은 NextAuth.js (Auth.js) 또는 Supabase Auth 기반 OAuth 2.0을 적용하고, B2B 관리자 계정에 TOTP 기반 MFA(다중 인증)를 필수 적용해야 한다 | 인증 흐름 검증, B2B 관리자 계정 MFA 활성화율 100% | PRD 5.3 |
 | REQ-NF-017 | 모든 데이터 전송은 TLS 1.3을 강제 적용해야 한다 | SSL Labs 등급 A+ 또는 동등 검증 | PRD 5.3 |
 
 #### 4.2.4 비용 (Cost)
@@ -681,7 +648,7 @@ sequenceDiagram
 
 | Req ID | 요구사항 | 목표값 | 측정 경로 | Source |
 |:---:|:---|:---|:---|:---|
-| REQ-NF-023 | 월간 에스크로 거래 완결 수 (북극성 KPI) | MVP+6개월: **30건** | `ESCROW_TX` 테이블 `state=released` 집계 → Metabase 대시보드 | PRD 1.3 |
+| REQ-NF-023 | 월간 에스크로 거래 완결 수 (북극성 KPI) | MVP+6개월: **30건** | `ESCROW_TX` 테이블 `state=released` 집계 → Supabase Dashboard + Admin 페이지 | PRD 1.3 |
 | REQ-NF-024 | 24시간 내 AS 출동 성공률 | MVP+6개월: **≥ 95%** | `AS_TICKET` WHERE `resolved_at - reported_at ≤ 24h` 비율 → Ops 대시보드 | PRD 1.3, G-01 |
 | REQ-NF-025 | 경영진 기안 첫 보고 통과율 | MVP+3개월: **≥ 80%** | 사후 설문 / 코호트 분석 (EXP-02) | PRD 1.3, G-02 |
 | REQ-NF-026 | O2O 파견 후 견적 요청 전환율 | Phase 2: **≥ 40%** | 퍼널 분석 | PRD 1.3, G-03 |
@@ -740,39 +707,67 @@ sequenceDiagram
 
 ### 6.1 API Endpoint List
 
-| # | Method | Endpoint | 설명 | 관련 API ID | 관련 REQ |
-|:---:|:---:|:---|:---|:---:|:---:|
-| 1 | POST | `/api/v1/escrow/deposit` | 에스크로 예치 요청 | API-01 | REQ-FUNC-001 |
-| 2 | POST | `/api/v1/escrow/release` | 에스크로 자금 방출 | API-02 | REQ-FUNC-002 |
-| 3 | POST | `/api/v1/escrow/dispute` | 분쟁 접수 | API-01 | REQ-FUNC-003 |
-| 4 | GET | `/api/v1/escrow/{txId}/status` | 에스크로 TX 상태 조회 | API-01 | REQ-FUNC-001 |
-| 5 | POST | `/api/v1/contracts` | 계약 생성 | — | REQ-FUNC-001 |
-| 6 | PUT | `/api/v1/contracts/{id}/inspect` | 검수 승인/거절 | — | REQ-FUNC-002, 005 |
-| 7 | POST | `/api/v1/as-tickets` | AS 티켓 접수 | API-11 | REQ-FUNC-007 |
-| 8 | PUT | `/api/v1/as-tickets/{id}/assign` | AS 엔지니어 배정 | API-11 | REQ-FUNC-007 |
-| 9 | PUT | `/api/v1/as-tickets/{id}/resolve` | AS 완료 처리 | API-11 | REQ-FUNC-008 |
-| 10 | GET | `/api/v1/as-tickets/{id}/sla` | SLA 충족 여부 조회 | API-11 | REQ-FUNC-008 |
-| 11 | POST | `/api/v1/warranty/issue` | AS 보증서 자동 발급 | API-12 | REQ-FUNC-006 |
-| 12 | GET | `/api/v1/si-partners/search` | SI 파트너 검색 (필터링) | API-07 | REQ-FUNC-029, 015 |
-| 13 | GET | `/api/v1/si-partners/{id}/profile` | SI 프로필 상세 조회 | API-07 | REQ-FUNC-009 |
-| 14 | GET | `/api/v1/si-partners/{id}/credit` | SI 재무 등급 조회 (NICE) | API-03 | REQ-FUNC-011 |
-| 15 | POST | `/api/v1/reports/proposal-pdf` | 기안용 리포트 PDF 생성 | API-09 | REQ-FUNC-010 |
-| 16 | POST | `/api/v1/badges` | 뱃지 발급 | API-10 | REQ-FUNC-013 |
-| 17 | PUT | `/api/v1/badges/{id}/revoke` | 뱃지 철회 | API-10 | REQ-FUNC-014 |
-| 18 | GET | `/api/v1/badges/expiring` | 만료 예정 뱃지 조회 | API-10 | REQ-FUNC-016 |
-| 19 | POST | `/api/v1/raas/calculate` | RaaS 비용 비교 계산 | API-08 | REQ-FUNC-018 |
-| 20 | POST | `/api/v1/raas/pdf` | RaaS 비교 결과 PDF 생성 | API-08 | REQ-FUNC-019 |
-| 21 | POST | `/api/v1/raas/finance-connect` | 금융 파트너 연결 | API-06 | REQ-FUNC-020 |
-| 22 | POST | `/api/v1/partner-proposals` | 파트너 제안 발송 | — | REQ-FUNC-030 |
-| 23 | PUT | `/api/v1/partner-proposals/{id}/respond` | 파트너 제안 수락/거절 | — | REQ-FUNC-030 |
-| 24 | POST | `/api/v1/o2o/bookings` | O2O 매니저 예약 생성 | — | REQ-FUNC-023 |
-| 25 | GET | `/api/v1/o2o/slots` | 가용 매니저 슬롯 조회 | — | REQ-FUNC-023 |
-| 26 | POST | `/api/v1/o2o/bookings/{id}/report` | 방문 보고서 등록 | — | REQ-FUNC-025 |
-| 27 | POST | `/api/v1/auth/signup/buyer` | 수요 기업 회원가입 | — | REQ-FUNC-027 |
-| 28 | POST | `/api/v1/auth/signup/si-partner` | SI 파트너 회원가입 | — | REQ-FUNC-028 |
-| 29 | POST | `/api/v1/notifications/send` | 알림 발송 (SMS + 카카오) | API-04, API-05 | REQ-FUNC-024 |
+> **구현 컨벤션:** Next.js App Router 기반. 외부 API 연동 및 바이너리 응답(PDF)은 Route Handler(`/app/api/*`), DB 뮬테이션(쓰기)은 Server Action, 읽기 전용은 Server Component로 구현한다. MVP 단일 버전이므로 `/api/v1/` 버전 접두사를 제거한다.
+
+| # | Method | Endpoint / Action | 설명 | 구현 방식 | 관련 API ID | 관련 REQ |
+|:---:|:---:|:---|:---|:---:|:---:|:---:|
+| 1 | POST | `/api/escrow/deposit` | 에스크로 예치 요청 | Route Handler | API-01 | REQ-FUNC-001 |
+| 2 | POST | `/api/escrow/release` | 에스크로 자금 방출 | Route Handler | API-02 | REQ-FUNC-002 |
+| 3 | POST | `/api/escrow/dispute` | 분쟁 접수 | Route Handler | API-01 | REQ-FUNC-003 |
+| 4 | GET | `/api/escrow/[txId]/status` | 에스크로 TX 상태 조회 | Route Handler | API-01 | REQ-FUNC-001 |
+| 5 | — | `action: createContract` | 계약 생성 | Server Action | — | REQ-FUNC-001 |
+| 6 | — | `action: submitInspection` | 검수 승인/거절 | Server Action | — | REQ-FUNC-002, 005 |
+| 7 | — | `action: createAsTicket` | AS 티켓 접수 | Server Action | API-11 | REQ-FUNC-007 |
+| 8 | — | `action: assignEngineer` | AS 엔지니어 배정 | Server Action | API-11 | REQ-FUNC-007 |
+| 9 | — | `action: resolveTicket` | AS 완료 처리 | Server Action | API-11 | REQ-FUNC-008 |
+| 10 | — | Server Component | SLA 충족 여부 조회 | Server Component | API-11 | REQ-FUNC-008 |
+| 11 | POST | `/api/warranty/issue` | AS 보증서 자동 발급 (PDF) | Route Handler | API-12 | REQ-FUNC-006 |
+| 12 | — | Server Component | SI 파트너 검색 (필터링) | Server Component | API-07 | REQ-FUNC-029, 015 |
+| 13 | — | Server Component | SI 프로필 상세 조회 | Server Component | API-07 | REQ-FUNC-009 |
+| 14 | GET | `/api/credit/query` | SI 재무 등급 조회 (NICE) | Route Handler | API-03 | REQ-FUNC-011 |
+| 15 | POST | `/api/reports/pdf` | 기안용 리포트 PDF 생성 | Route Handler | API-09 | REQ-FUNC-010 |
+| 16 | — | `action: issueBadge` | 뱃지 발급 | Server Action | API-10 | REQ-FUNC-013 |
+| 17 | — | `action: revokeBadge` | 뱃지 철회 | Server Action | API-10 | REQ-FUNC-014 |
+| 18 | — | Vercel Cron + Server Component | 만료 예정 뱃지 조회 | Vercel Cron | API-10 | REQ-FUNC-016 |
+| 19 | — | `action: calculateRaasOptions` | RaaS 비용 비교 계산 | Server Action | API-08 | REQ-FUNC-018 |
+| 20 | POST | `/api/raas/pdf` | RaaS 비교 결과 PDF 생성 | Route Handler | API-08 | REQ-FUNC-019 |
+| 21 | POST | `/api/raas/finance` | 금융 파트너 연결 | Route Handler | API-06 | REQ-FUNC-020 |
+| 22 | — | `action: sendPartnerProposal` | 파트너 제안 발송 | Server Action | — | REQ-FUNC-030 |
+| 23 | — | `action: respondProposal` | 파트너 제안 수락/거절 | Server Action | — | REQ-FUNC-030 |
+| 24 | — | `action: createO2oBooking` | O2O 매니저 예약 생성 | Server Action | — | REQ-FUNC-023 |
+| 25 | — | Server Component | 가용 매니저 슬롯 조회 | Server Component | — | REQ-FUNC-023 |
+| 26 | — | `action: submitVisitReport` | 방문 보고서 등록 | Server Action | — | REQ-FUNC-025 |
+| 27 | — | `action: signupBuyer` | 수요 기업 회원가입 | Server Action | — | REQ-FUNC-027 |
+| 28 | — | `action: signupSiPartner` | SI 파트너 회원가입 | Server Action | — | REQ-FUNC-028 |
+| 29 | POST | `/api/notifications/send` | 알림 발송 (SMS + 카카오) | Route Handler | API-04, API-05 | REQ-FUNC-024 |
 
 ### 6.2 Entity & Data Model
+
+> **ORM 매핑 노트 (Prisma + SQLite/PostgreSQL 호환성):**
+> - 모든 엔티티는 **Prisma ORM** `schema.prisma`로 정의하며, `prisma migrate` 명령으로 스키마를 관리한다.
+> - **JSONB** → Prisma `Json` 타입 (로컬 SQLite에서는 JSON 문자열로 자동 직렬화)
+> - **TEXT[]** → Prisma `Json` 타입으로 대체 (SQLite는 배열 타입 미지원)
+> - **ENUM** → Prisma `enum` 정의 (SQLite에서는 String으로 매핑)
+> - **DECIMAL(15,2)** → Prisma `Decimal` (SQLite에서는 `REAL`로 매핑, 로컬 개발 시 정밀도 차이 허용)
+> - **UUID** → Prisma `String @id @default(cuid())` 또는 `@default(uuid())`
+>
+> **Prisma Schema 예시 (BUYER_COMPANY):**
+> ```prisma
+> model BuyerCompany {
+>   id                String   @id @default(cuid())
+>   companyName       String
+>   bizRegistrationNo String   @unique
+>   region            String
+>   segment           String   // 'Q1' | 'Q2' | 'Q3' | 'Q4'
+>   contactName       String
+>   contactEmail      String
+>   contactPhone      String
+>   createdAt         DateTime @default(now())
+>   updatedAt         DateTime @updatedAt
+>   contracts         Contract[]
+>   o2oBookings       O2oBooking[]
+> }
+> ```
 
 #### 6.2.1 BUYER_COMPANY (수요 기업)
 
@@ -1192,11 +1187,11 @@ classDiagram
 ```mermaid
 sequenceDiagram
     participant B as 수요기업(Buyer)
-    participant WEB as 웹 프론트엔드
-    participant BFF as 플랫폼 BFF
-    participant DB as 데이터베이스
+    participant WEB as Next.js Client
+    participant BFF as Next.js Server
+    participant DB as Prisma → Supabase
     participant PG as PG사(에스크로)
-    participant LOG as 로그/모니터링
+    participant LOG as Vercel Logs
     participant SI as SI파트너
     participant OPS as 운영팀(중재)
 
@@ -1271,12 +1266,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant MFR as 제조사
-    participant WEB as 제조사 포털
-    participant BFF as 플랫폼 BFF
-    participant DB as 데이터베이스
+    participant WEB as Next.js Client (제조사)
+    participant BFF as Next.js Server
+    participant DB as Prisma → Supabase
     participant SI as SI파트너
-    participant BATCH as 배치 스캐너
-    participant NOTI as 알림 서비스
+    participant BATCH as Vercel Cron
+    participant NOTI as Notification Module
 
     Note over MFR,NOTI: 뱃지 발급
     MFR->>WEB: SI 파트너에게 인증 뱃지 발급 요청
@@ -1335,11 +1330,11 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant U as 사용자(SME대표)
-    participant WEB as 웹 프론트엔드
-    participant BFF as 플랫폼 BFF
-    participant CALC as RaaS계산엔진
+    participant WEB as Next.js Client
+    participant BFF as Next.js Server
+    participant CALC as RaaS Module
     participant FIN as 금융파트너API
-    participant LOG as 로그/모니터링
+    participant LOG as Vercel Logs
 
     U->>WEB: 로봇 모델, 수량, 계약 기간 입력
     WEB->>WEB: 클라이언트 유효성 검증
@@ -1400,11 +1395,11 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant B as 수요기업(Buyer)
-    participant BFF as 플랫폼 BFF
-    participant CACHE as DB캐시(TTL=30일)
+    participant BFF as Next.js Server
+    participant CACHE as Prisma (TTL 컨럼)
     participant NICE as NICE평가정보API
-    participant MON as 모니터링/알림
-    participant BATCH as 일일배치
+    participant MON as Vercel Analytics + Slack
+    participant BATCH as Vercel Cron
 
     Note over B,BATCH: 실시간 조회 요청
     B->>BFF: SI 프로필 재무 등급 조회
@@ -1454,13 +1449,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant B as 수요기업(Buyer)
-    participant WEB as 웹 프론트엔드
-    participant BFF as 플랫폼 BFF
-    participant DB as 데이터베이스
-    participant NOTI as 알림서비스
+    participant WEB as Next.js Client
+    participant BFF as Next.js Server
+    participant DB as Prisma → Supabase
+    participant NOTI as Notification Module
     participant OPS as 운영팀
     participant AS as 로컬AS엔지니어
-    participant MON as 모니터링
+    participant MON as Vercel Analytics + Slack
 
     B->>WEB: 긴급 AS 접수 (계약ID, 증상 설명)
     WEB->>BFF: POST /api/v1/as-tickets
@@ -1505,10 +1500,10 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant B as 수요기업(공장장)
-    participant WEB as 웹 프론트엔드
-    participant BFF as 플랫폼 BFF
-    participant DB as 데이터베이스
-    participant NOTI as 알림서비스(SMS+카카오)
+    participant WEB as Next.js Client
+    participant BFF as Next.js Server
+    participant DB as Prisma → Supabase
+    participant NOTI as Notification Module(SMS+카카오)
     participant MGR as 로컬매니저
     participant OPS as 운영팀
 
@@ -1570,351 +1565,4 @@ sequenceDiagram
 
 ---
 
-## 7. Verification and Validation (검증 및 타당성 확인)
-
-### 7.1 검증 방법 (Verification Methods)
-
-본 시스템의 요구사항이 올바르게 구현되었는지 확인하기 위해 아래 4가지 검증 방법을 적용한다.
-
-| 방법 | 코드 | 정의 | 적용 대상 |
-|:---|:---:|:---|:---|
-| **검사 (Inspection)** | I | 코드 리뷰, 문서 검토, 정적 분석 | 보안 요구사항 (REQ-NF-014~017), 데이터 보존 정책 (REQ-NF-011~013) |
-| **분석 (Analysis)** | A | 로그 데이터 기반 통계 분석, 코호트 분석 | KPI (REQ-NF-023~028), 비용 목표 (REQ-NF-018~020) |
-| **시연 (Demonstration)** | D | 기능 동작 시연, 워크스루 | 온보딩 (REQ-FUNC-027, 028), UI 흐름 (REQ-FUNC-009~012) |
-| **테스트 (Test)** | T | 단위·통합·부하·E2E 테스트 | 에스크로 (REQ-FUNC-001~005), 성능 (REQ-NF-001~006) |
-
-### 7.2 요구사항별 검증 방법 매핑
-
-| Requirement ID | 요구사항 요약 | 검증 방법 |
-|:---:|:---|:---:|
-| REQ-FUNC-001 | 에스크로 예치 (≤3분, 실패율 <0.5%) | T |
-| REQ-FUNC-002 | 검수 합격 시 자금 방출 (≤24시간) | T |
-| REQ-FUNC-003 | 분쟁 발생 시 중재 개시 (≤2영업일) | D, T |
-| REQ-FUNC-004 | PG 타임아웃 시 자동 재시도 및 CS 유도 | T |
-| REQ-FUNC-005 | 검수 기한(7영업일) 만료 시 자동 분쟁 전환 | T |
-| REQ-FUNC-006 | 에스크로 결제 완료 시 AS 보증서 자동 발급 (≤1분) | T |
-| REQ-FUNC-007 | SI 부도 시 로컬 AS 엔지니어 자동 매칭 (≤4시간) | T, D |
-| REQ-FUNC-008 | AS 티켓 SLA 충족 여부 자동 기록 | T, I |
-| REQ-FUNC-009 | SI 프로필 재무/성공률/리뷰 통합 표시 (≤2초) | T |
-| REQ-FUNC-010 | 기안용 리포트 PDF 4섹션 생성 (≤5초) | T |
-| REQ-FUNC-011 | NICE API 장애 시 캐시 폴백 + 안내 배너 | T |
-| REQ-FUNC-012 | NICE 잔여 한도 50건 미만 시 Ops 알림 발송 | T, A |
-| REQ-FUNC-013 | 제조사 인증 뱃지 발급 (반영 ≤1시간) | T |
-| REQ-FUNC-014 | 뱃지 만료/철회 시 자동 비노출 (≤10분) | T |
-| REQ-FUNC-015 | 뱃지 보유 SI 필터 적용 (미인증 혼입률 0%) | T |
-| REQ-FUNC-016 | 뱃지 만료 D-7일 자동 알림 발송 | T |
-| REQ-FUNC-017 | Brand-Agnostic 뱃지 구조 (≥3사) | I, T |
-| REQ-FUNC-018 | RaaS 3옵션 비용 결과 렌더링 (≤2초) | T |
-| REQ-FUNC-019 | ROI/TCO 포함 PDF 생성 (≤3초) | T |
-| REQ-FUNC-020 | 금융 파트너 API 연결 (≤5초) | T |
-| REQ-FUNC-021 | 유효하지 않은 입력 시 인라인 에러 (≤200ms) | T |
-| REQ-FUNC-022 | 금융 API 장애 시 재시도 + 대안 경로 | T |
-| REQ-FUNC-023 | O2O 가용 매니저 슬롯 조회 (≤2초) | T |
-| REQ-FUNC-024 | 예약 확정 시 SMS+카카오 이중 알림 (≤30초) | T |
-| REQ-FUNC-025 | 방문 보고서 등록 및 관리 (≤24시간) | D, T |
-| REQ-FUNC-026 | 가용 슬롯 0건 시 가장 가까운 일정 추천 | T |
-| REQ-FUNC-027~028 | 수요기업/SI 파트너 온보딩 | D, T |
-| REQ-FUNC-029 | 지역/브랜드/역량 태그 SI 검색 (≤1초) | T |
-| REQ-FUNC-030~032 | 파트너 제안 발송/수락/거절/리마인더 | T |
-| REQ-FUNC-033~036 | 모니터링 알림 (PagerDuty/Slack) | T, A |
-| REQ-NF-001~006 | 성능 (LCP, API 응답, CCU) | T |
-| REQ-NF-007~013 | 가용성/데이터 보존 | T, I, A |
-| REQ-NF-014~017 | 보안 (PCI-DSS, TLS, MFA) | I |
-| REQ-NF-018~020 | 비용 목표 | A |
-| REQ-NF-021 | 수평 확장성 | T |
-| REQ-NF-022 | Brand-Agnostic DB 구조 | I |
-| REQ-NF-023~028 | KPI 기반 지표 | A |
-
-### 7.3 타당성 확인 실험 (Validation Experiments)
-
-PRD 8.2절의 실험 설계를 기반으로, 요구사항의 비즈니스 타당성을 확인한다.
-
-| ID | 검증 대상 (Requirement) | 가설 | 성공 기준 | 설계·도구 | 시점 | 표본 | 관련 REQ |
-|:---:|:---|:---|:---|:---|:---|:---|:---|
-| **VAL-01** | 에스크로 기반 거래 전환율 | 에스크로 보호 시 첫 거래 전환율 +30pp 상승 | 전환율 **+30pp**, p < 0.05 | A/B 테스트 (대조: 일반결제 / 실험: 에스크로) | Open Beta (MVP+4w~+12w) | 100개사 | REQ-FUNC-001, REQ-NF-023 |
-| **VAL-02** | 기안 리포트 유효성 | 기안 리포트 자동 생성 시 통과율 80% 초과 | 통과율 **≥ 80%** (기준선 35%) | 코호트 분석 (다운로드 vs 미다운로드) | CB~OB (MVP~+12w) | 50개사 | REQ-FUNC-010, REQ-NF-025 |
-| **VAL-03** | 인증 뱃지 신뢰도 | 뱃지 SI 우선 노출 시 매칭 요청 수 2배 증가 | CTR **×2.0↑**, p < 0.05 | A/B 테스트 (대조: 기본정렬 / 실험: 뱃지 상단 고정) | Open Beta (MVP+4w~+12w) | 200건+ SI 프로필 뷰 | REQ-FUNC-013, 015 |
-| **VAL-04** | RaaS 계산기 ROI 효과 | RaaS 계산기 사용자 > 미사용자 계약 전환율 | 전환율 **≥ 25%** (미사용 대비 +15pp) | 퍼널 분석 (자연 노출 분기) | Open Beta (MVP+4w~+12w) | 100개사 | REQ-FUNC-018, REQ-NF-027 |
-| **VAL-05** | AS 보증료 수용도 | 보증료 WTP ≥ 8% 검증 | 중앙값 **≥ 8%**, 95% CI 하한 **≥ 6%** | Van Westendorp PSM 설문(4Q) | Closed Beta (MVP~+4w) | 200명 | REQ-NF-023 |
-
-### 7.4 측정 도구 및 연결표
-
-PRD 9.4절의 실험 설계 연결표를 SRS 형식으로 재구성한다.
-
-| 주장 (Claim) | 실험 설계 (Design) | 측정 도구 (Metrics) | Validation ID |
-|:---|:---|:---|:---:|
-| 에스크로가 전환율을 높인다 | A/B 테스트 (n≥100) | 견적→계약 전환율, p-value | VAL-01 |
-| 기안 리포트가 통과율을 높인다 | 코호트 분석 (n≥50) | 첫 보고 통과율 (%) | VAL-02 |
-| 뱃지가 매칭 선호를 높인다 | A/B 테스트 (n≥200) | 매칭 요청 수/뷰 (CTR) | VAL-03 |
-| RaaS 계산기가 결정을 앞당긴다 | 퍼널 분석 (n≥100) | 계산기 사용→계약 전환율 | VAL-04 |
-| 보증료 WTP가 8% 이상이다 | 가격 탄력성 설문 (n≥200) | WTP 중앙값 (%), 95% CI | VAL-05 |
-
----
-
-## 8. Project Risks and Constraints (프로젝트 리스크 및 제약사항)
-
-### 8.1 리스크 레지스트리
-
-PRD 7.3절의 리스크를 SRS 형식으로 정식 기재한다.
-
-| Risk ID | 리스크 항목 | 영향도 | 발생 가능성 | 완화 전략 (Mitigation) | 관련 REQ |
-|:---:|:---|:---:|:---:|:---|:---|
-| **REQ-RISK-01** | **SI 파트너 초기 공급 부족 (Cold-Start)** — MVP 런칭 시 인증 뱃지 보유 SI 50개사 미달 | 상 | 중상 | D-90일부터 Layer 3 영세 SI 무료 온보딩 캠페인. 최소 3개 제조사 파트너십 사전 체결 | REQ-FUNC-013, 017 |
-| **REQ-RISK-02** | **에스크로 분쟁 폭주** — 검수 합격 기준 모호로 분쟁 비율 10% 초과 | 중상 | 중 | 표준 검수 체크리스트 20항목 사전 정의. 분쟁 중재 SLA 2영업일 준수 인력 1명 전담 | REQ-FUNC-003, 005 |
-| **REQ-RISK-03** | **AS 출동 SLA 미달** — 지방·야간 AS 엔지니어 공급 부족으로 24시간 출동률 < 95% | 상 | 중상 | 수도권·5대 산단 집중 운영 후 점진 확대. 로컬 AS 사업자 계약 시 SLA 위약금 조항 삽입 | REQ-FUNC-007, REQ-NF-024 |
-| **REQ-RISK-04** | **규제 리스크** — 에스크로 결제가 전자금융업 등록 대상 판정 | 상 | 중 | PG사 에스크로 서비스 위임 구조(직접 결제 아님) 확인. 법률 자문 MVP 전 완료 | CON-01 |
-| **REQ-RISK-05** | **경쟁사 추격** — 마로솔이 에스크로 + 3D 기능 자체 개발 | 중상 | 중 | 호환성 DB + 제조사 뱃지 독점 파트너십으로 데이터 해자 선점. 속도 우선 | REQ-FUNC-017, CON-03 |
-
-### 8.2 Architecture Decision Records (ADR)
-
-PRD 7.5절의 핵심 아키텍처 결정 기록을 SRS 형식으로 정식 기재한다.
-
-#### ADR-001: 에스크로 결제 — PG사 위임 구조 채택
-
-| 항목 | 내용 |
-|:---|:---|
-| **결정** | 플랫폼이 직접 자금을 보관하지 않고, PG사(토스페이먼츠/나이스)의 에스크로 API를 위임 호출하여 자금 예치·방출을 처리한다 |
-| **배경/제약** | 직접 자금 보관 시 `전자금융업자 등록`(금융위원회) 필수 → MVP 단계에서 라이선스 취득에 6~12개월 소요. 초기 스타트업에게 치명적 시간 지연 (REQ-RISK-04 직결) |
-| **검토한 대안** | ① 자체 에스크로 구축(규제 리스크 상) ② 블록체인 스마트컨트랙트(B2B SME 수용성 극저) ③ PG사 위임(규제 회피 + 기존 인프라 활용) |
-| **결론** | ③ PG 위임 채택. PCI-DSS 준수를 PG에 전가하고, 플랫폼은 계약 상태 관리·분쟁 중재에만 집중. MVP 속도 확보 |
-| **리스크 잔존** | PG사 에스크로가 B2B 고액(건당 1억+)을 지원하지 않을 가능성 → ASM-01에서 사전 확인 |
-| **관련 제약** | CON-01, REQ-NF-014 |
-
-#### ADR-002: SI 재무 등급 — NICE API 캐시 TTL 30일 설정
-
-| 항목 | 내용 |
-|:---|:---|
-| **결정** | NICE평가정보 신용조회 API 결과를 DB에 캐시하고, TTL(Time-to-Live)을 **30일**로 설정한다 |
-| **배경/제약** | API 일일 조회 한도 500건. SI 파트너 120개사 기준 월 1회 전수 갱신 시 4일 소요(120건/일). 실시간 조회는 한도 초과로 불가 |
-| **검토한 대안** | ① 실시간 조회만(한도 초과 시 장애) ② 7일 캐시(갱신 빈도 과다, 비용 증가) ③ 30일 캐시(월 1회 배치 갱신) ④ 90일 캐시(데이터 신선도 부족) |
-| **결론** | ③ 30일 캐시 채택. 재무 등급은 월 단위 변동이므로 30일이 정보 신선도와 API 효율의 최적 균형점. 장애 시 캐시 폴백 자동 전환(AC-2.5) |
-| **리스크 잔존** | 캐시 기간 중 SI 업체 급격한 재무 악화 시 데이터 지연 → 분기 1회 수동 스팟 체크 프로세스 추가 |
-| **관련 제약** | CON-02, REQ-FUNC-011, REQ-FUNC-012 |
-
-#### ADR-003: Brand-Agnostic 다(多)브랜드 호환성 DB 구조 채택
-
-| 항목 | 내용 |
-|:---|:---|
-| **결정** | 특정 로봇 제조사에 종속되지 않는 **Brand-Agnostic 호환성 DB** 구조로 설계한다 |
-| **배경/제약** | 경쟁사 UR+는 UR 1사에 한정된 500개 파트너 생태계. 국내 로봇 시장에서 UR 외 브랜드가 차지하는 비중 약 70%. 단일 브랜드 종속 시 시장의 70%를 포기 |
-| **검토한 대안** | ① UR+ 모델 모방(1개 브랜드 깊이 우선) ② 2~3개 주요 브랜드 한정 ③ 완전 Brand-Agnostic 개방형 |
-| **결론** | ③ 채택. 플랫폼의 핵심 해자는 '중립성'이며, 수요 기업 페르소나(김도진)가 신뢰하는 근거. 초기 ≥ 3사 파트너십(ASM-02)으로 시작하되, DB 스키마는 제조사 무관 확장 가능 구조 |
-| **리스크 잔존** | 특정 제조사가 독점 파트너십을 요구하며 참여 거부 가능 → 중립성 원칙 고수, 개별 제조사 의존도 30% 이하 유지 |
-| **관련 제약** | CON-03, REQ-FUNC-017, REQ-NF-022 |
-
-### 8.3 Design Constraints (설계 제약사항)
-
-기존 SRS 1.2.3절의 제약사항에서 도출된 핵심 설계 제약을 정식 요구사항 형태로 기재한다.
-
-| ID | 제약사항 | 근거 | 관련 ADR |
-|:---:|:---|:---|:---:|
-| **REQ-CON-01** | 플랫폼은 직접 자금을 보관하지 않으며, 모든 자금 흐름은 PG사 에스크로 서버를 경유해야 한다 | 전자금융업자 등록 회피, MVP 속도 확보 | ADR-001 |
-| **REQ-CON-02** | NICE API 호출 최적화를 위해 월 1회 전수 갱신 배치를 수행하며, 실시간 조회 실패 시 캐시 데이터를 사용한다 (TTL 30일) | API 일일 한도 500건, 정보 신선도-효율 균형 | ADR-002 |
-| **REQ-CON-03** | 특정 브랜드 종속을 방지하기 위해 다중 제조사(UR, 두산, 레인보우 등)를 수용하는 확장 스키마를 유지한다 | UR 외 시장 70% 커버 목표 | ADR-003 |
-| **REQ-CON-04** | PG사 에스크로가 B2B 고액 거래(건당 1억 원 이상)를 기술적으로 지원해야 한다 | 가정 ASM-01 | ADR-001 |
-| **REQ-CON-05** | 결제 데이터는 PCI-DSS Level 1을 준수한다 (PG사 위임) | 보안 요구 | ADR-001 |
-| **REQ-CON-06** | 개인정보보호법 준수 및 ISMS-P 인증을 MVP+12개월 내 취득한다 | 보안 요구 | — |
-| **REQ-CON-07** | MVP 인프라 비용은 월 500만 원 이하로 유지한다 | 비용 목표 (PRD 5.4) | — |
-
----
-
-## 9. Assumptions and Dependencies (가정 및 의존성)
-
-PRD 7.4절의 가정·의존성을 SRS 형식으로 정식 기재한다.
-
-### 9.1 가정 (Assumptions)
-
-| ID | 가정 항목 | 상세 내용 | 검증 시한 | 검증 실패 시 영향 |
-|:---:|:---|:---|:---|:---|
-| **ASM-01** | PG사 B2B 고액 지원 | PG사(토스페이먼츠/나이스) 에스크로 API가 B2B 고액 거래(건당 1억 원 이상)를 기술적으로 지원한다 | D-60일 | REQ-FUNC-001~005 전체 에스크로 기능 구현 불가. 대안 PG사 탐색 또는 분할 결제 구조 검토 필요 |
-| **ASM-02** | 제조사 뱃지 참여 | 로봇 제조사(UR, 두산, 레인보우 등) 최소 3사가 뱃지 프로그램에 참여한다 | D-90일 LOI 완료 | REQ-FUNC-013~017, CON-03 위반. Brand-Agnostic 전략 및 뱃지 시스템의 차별적 가치 상실 |
-| **ASM-03** | 재무 조회 법적 허용 | NICE평가정보 API를 통한 SI 업체 재무 등급 조회가 B2B 서비스 맥락에서 법적으로 가능하다 | D-60일 법률 검토 | REQ-FUNC-009~012 평판 뷰어의 재무 등급 섹션 제거 필요. 대안: 자가 신고 기반 재무 정보 |
-| **ASM-04** | 로컬 AS 사업자 SLA 동의 | 지역별 로컬 AS 사업자가 플랫폼의 24시간 SLA 조항에 동의하고 계약 가능하다 | D-30일 (수도권 5개 산단) | REQ-FUNC-007, REQ-NF-024 AS 출동 보장 SLA 달성 불가. 대안: SLA 수치 완화(48시간) |
-| **ASM-05** | MVP 동시 접속 규모 | MVP 단계의 동시 접속 규모는 500 CCU 이내이다 | 부하 테스트 (D-14) | REQ-NF-005, REQ-NF-006 초과 시 인프라 스케일업 및 비용 목표(REQ-NF-018) 재조정 필요 |
-
-### 9.2 의존성 (Dependencies)
-
-| ID | 의존성 항목 | 의존 대상 | 확보 시한 | 미충족 시 영향 |
-|:---:|:---|:---|:---|:---|
-| **DEP-01** | PG사 에스크로 API 계약 | 토스페이먼츠 또는 나이스 | MVP D-60일 | F-01 전체 기능 블로킹 |
-| **DEP-02** | NICE평가정보 API 계약 | NICE평가정보 | MVP D-60일 | F-03 재무 등급 표시 불가, 캐시 데이터 원천 미확보 |
-| **DEP-03** | 제조사 파트너십 LOI | 로봇 제조사 최소 3사 | MVP D-90일 | F-04 뱃지 시스템 콘텐츠 부재 (Cold-Start: REQ-RISK-01 현실화) |
-| **DEP-04** | 로컬 AS 사업자 계약 | 수도권 5개 산단 AS 사업자 | MVP D-30일 | F-02 AS 출동 보증 SLA 달성 불가 (REQ-RISK-03 현실화) |
-| **DEP-05** | 금융 파트너 API 연동 | 리스/RaaS 금융 파트너 | MVP D-30일 | F-05 실시간 금융 정보 제공 불가, 이메일 견적 대안 경로만 제공 |
-| **DEP-06** | 카카오 알림톡/SMS 연동 | 카카오, SMS 게이트웨이 | MVP D-14일 | 알림 기능 제한, 이메일 단일 채널 대안 제공 |
-
----
-
-## 10. Deployment and Support (배포 및 지원)
-
-### 10.1 Rollout Strategy (단계적 배포)
-
-PRD 8.1절의 베타 채널 계획을 SRS 형식으로 정식 기재한다.
-
-| 단계 | 시기 | 대상 | 규모 | 목적 | 진입/종료 기준 |
-|:---:|:---|:---|:---:|:---|:---|
-| **Alpha** | MVP-4주 | 내부 팀 + 파트너 SI 5개사 | 10명 | 핵심 기능 안정성 검증, 치명적 결함 탐지 | 진입: 기능 개발 완료. 종료: P1 결함 0건, 에스크로 E2E 성공 |
-| **Closed Beta (CB)** | MVP ~ MVP+4주 | 수도권 2개 산단 SME 초대 | 30개사 | 실사용 환경 운영 검증, EXP-05(보증료 WTP) 수행 | 진입: Alpha 종료 기준 충족. 종료: 에스크로 완결 ≥ 5건, 치명적 SLA 위반 0건 |
-| **Open Beta (OB)** | MVP+4주 ~ +12주 | 전국 5대 산단 확장 | 100개사 | A/B 실험(EXP-01, 03, 04) 수행, 통계적 유의성 확보 | 진입: CB 종료 기준 충족. 종료: 에스크로 완결 ≥ 15건, EXP 성공 기준 달성 |
-
-### 10.2 배포 환경 요구사항
-
-| 환경 | 용도 | 인프라 요구사항 |
-|:---|:---|:---|
-| **Development** | 개발/단위 테스트 | 클라우드 개발 환경 (비용 최소화) |
-| **Staging** | 부하 테스트 (k6/Locust, 500 CCU × 30분), 통합 테스트 | Production 동등 구성 (MVP D-14 수행) |
-| **Production** | 실서비스 운영 | 월 500만 원 이하 (REQ-NF-018), 99.5% 가용성 (REQ-NF-007) |
-
-### 10.3 Benchmarking Plan (경쟁 대안 대비 벤치마크)
-
-PRD 8.3절의 경쟁 대안 대비 벤치마크 계획을 정식 기재한다.
-
-| 비교 항목 | 현 대안 (마로솔·브로커) | 본 플랫폼 목표 | 벤치마크 방법 | 관련 REQ |
-|:---|:---|:---|:---|:---|
-| 계약금 보호 | 보호 없음 (0%) | **100% 에스크로 보호** | 분쟁 발생 시 자금 보전율 비교 | REQ-FUNC-001~002 |
-| SI 검증 소요 | 14일+ (발품 탐색) | **≤ 1일** (리포트 즉시 발행) | 미스터리 쇼퍼 테스트 (n=20) | REQ-FUNC-009~010 |
-| AS 출동 보증 | 보증 없음 | **24시간 내 95%** 출동 | 2개월간 AS 접수-출동 로그 분석 | REQ-FUNC-007, REQ-NF-024 |
-| 비용 비교 기능 | 수기 견적 2주+ | **실시간 3옵션**, 2초 내 | Task Completion Rate 비교 (n=50) | REQ-FUNC-018 |
-
----
-
-## 11. Business Context (비즈니스 컨텍스트)
-
-### 11.1 문제 정의 (Pain 지표)
-
-PRD 1.1절의 문제 정의를 SRS 참조용으로 정식 기재한다.
-
-| Pain ID | Pain 서술 | 실패 KPI (현재 As-Is) | 매핑 페르소나 | 해결 Feature |
-|:---:|:---|:---|:---|:---|
-| **P-01** | SI 업체 파산/잠적으로 로봇이 고철화 → 유지보수 단절 트라우마 | 도입 후 1년 내 AS 단절 경험률 **≥ 25%** (추정) | 조상필 (P9, AOS=4.00) | F-01, F-02 |
-| **P-02** | 업체 재무/기술 역량을 객관적으로 증명할 수 없어 기안 반려 반복 | 경영진 기안 첫 보고 통과율 **≤ 35%**, 평균 검증 소요 **14일+** | 김도진 (P1, AOS=2.88) | F-03, F-04 |
-| **P-03** | 비대면 계약에 대한 맹목적 불신 → 온라인 전환 거부 | 플랫폼 가입 후 첫 견적 요청 전환율 **≤ 5%** (아날로그 층) | 백창훈 (P11, AOS=1.35) | F-06 |
-| **P-04** | 초기 투자비(CAPEX) 부담 → 유연한 구독형 상품 부재 | SME 중 CAPEX 부담으로 도입 주저 비율 **44.2%** | 이정훈 (P2, AOS=2.00) | F-05 |
-| **P-05** | SI 파트너 탐색에 박람회·인맥 의존 → 검색 비용 과다 | 적격 SI 파트너 발굴까지 평균 소요 **≥ 3개월** | 강혁진 (P6, AOS=2.88) | F-04, F-03 |
-
-### 11.2 목표 (Desired Outcome)
-
-PRD 1.2절의 비즈니스 목표를 SRS 요구사항과 연결한다.
-
-| 목표 ID | 목표 서술 | 목표값 | 달성 시한 | 관련 REQ |
-|:---:|:---|:---|:---|:---|
-| **G-01** | 고장 접수 → 로컬 AS 엔지니어 방문 보장 | 24시간 내 출동률 **≥ 95%** | MVP+6개월 | REQ-FUNC-007, REQ-NF-024 |
-| **G-02** | 경영진 기안 첫 보고 통과율 대폭 개선 | 첫 보고 통과율 **≥ 80%**, 검증 소요 **≤ 1일** | MVP+3개월 | REQ-FUNC-010, REQ-NF-025 |
-| **G-03** | 아날로그 층의 플랫폼 내 최초 거래 전환 | O2O 파견 후 견적 요청 전환율 **≥ 40%** | Phase 2 | REQ-FUNC-023~026, REQ-NF-026 |
-| **G-04** | CAPEX→OPEX 전환을 통한 도입 결정 가속 | RaaS 계산기 사용 후 계약 전환율 **≥ 25%** | MVP+6개월 | REQ-FUNC-018, REQ-NF-027 |
-
-### 11.3 성공 지표 (KPI) — 요구사항 추적
-
-PRD 1.3절의 KPI를 SRS 요구사항 ID와 측정 경로에 연결한다.
-
-| 유형 | KPI | 기준선 | MVP+1m | MVP+3m | MVP+6m (Target) | 주기 | 측정 경로 | 관련 REQ |
-|:---|:---|:---|:---|:---|:---|:---|:---|:---|
-| 🌟 **북극성** | 에스크로 거래 완결 수 (월간) | 0 | 5건 | 15건 | **30건** | 주간 | `ESCROW_TX` `state=released` 집계 → Metabase | REQ-NF-023 |
-| 보조 | 신규 수요 기업 가입 수 | 0 | 50 | **200** | 300 | 주간 | `BUYER_COMPANY` 신규 생성 → Amplitude `signup_complete` | REQ-FUNC-027 |
-| 보조 | 뱃지 인증 SI 파트너 등록 수 | 0 | **50** (런칭) | 80 | 120 | 월간 | `BADGE` `is_active=true` 고유 SI 수 → Admin | REQ-FUNC-013, REQ-NF-021 |
-| 보조 | 에스크로 보증 수수료 GMV 비율 | 0% | 5% | 7% | **5~10%** | 월간 | `ESCROW_TX.amount / CONTRACT.total_amount` 평균 | REQ-FUNC-001 |
-| 보조 | 24시간 내 AS 출동 성공률 | N/A | ≥ 80% | ≥ 90% | **≥ 95%** | 월간 | `AS_TICKET` `resolved_at - reported_at ≤ 24h` 비율 | REQ-NF-024 |
-| 보조 | NPS (수요 기업) | N/A | 측정 시작 | ≥ 40 | **≥ 50** | 분기 | 인앱 NPS 설문 → 분기 리포트 | REQ-NF-028 |
-
-### 11.4 AOS-DOS 기반 투자 우선순위
-
-PRD 2.1절의 AOS-DOS 분석 결과와 전략 분석(REF-07)을 기반으로 시스템 투자 서열을 정의한다.
-
-| Quadrant | 투자 방향 | 예산 배분 | 대상 기능 | 근거 |
-|:---:|:---|:---:|:---|:---|
-| **Q1 (즉시 투자)** | 핵심 Pain 해소 — 에스크로 + 평판 뷰어 | **80%** | F-01, F-02, F-03, F-04 | P-01 (AOS=4.00), P-02 (AOS=2.88) 해결. 가장 높은 기회 점수 |
-| **Q3 (조건부 확장)** | 비대면 불신 해소 — O2O 매니저 파견 | **진입 후 배분** | F-06 | P-03 (AOS=1.35). Phase 2 조건: CB 전환율 ≥ 10% 도달 시 |
-| **Q2 (백로그)** | 비용 비교 및 3D 시뮬레이션 | **잔여** | F-05, F-07 | P-04 (AOS=2.00). Should 우선순위로 MVP 포함하되 예산 제한적 배분 |
-| **Q4 (폐기)** | ROI 음수 기능 | **0%** | F-08 (보조금 대행), F-09 (대기업 커스텀) | DOS < 0. AOS-DOS 분석에서 영구 Drop 판정 |
-
-### 11.5 KSF (Key Success Factors) 이행 경로
-
-전략 분석(REF-06: KSF 통합 보고서)에서 도출된 핵심 성공 요인의 순서적 실행 경로를 SRS 요구사항과 연결한다.
-
-| 경로 | KSF | Phase | 핵심 실행 내용 | 관련 REQ |
-|:---:|:---|:---:|:---|:---|
-| **Path A** | 호환성 DB 구축을 통한 정보 비대칭 해소 | 1 | Brand-Agnostic DB 스키마(ADR-003), 뱃지 시스템(F-04), 재무 평판 뷰어(F-03) | REQ-FUNC-009~017, REQ-NF-022 |
-| **Path B** | SI 공생 구조(에스크로 분쟁 중재)를 통한 생태계 안정화 | 1 | 에스크로 결제(F-01), AS 보증(F-02), 분쟁 중재 프로세스 | REQ-FUNC-001~008 |
-| **Path C** | 3D 시뮬레이션 등 고도화 기술 적용으로 전환율 극대화 | 2 | 3D 기술핏 시뮬레이터(F-07, Phase 2), RaaS 계산기 고도화 | REQ-FUNC-018~022 (Phase 1), F-07 (Phase 2) |
-
-### 11.6 수요자 여정 Pain 맵
-
-PRD 2.2절의 수요자 여정에서 각 단계의 Pain과 해결 Feature의 연결을 기재한다.
-
-```mermaid
-journey
-    title SME 수요자의 로봇 SI 도입 여정 — Pain 및 해결 Feature 매핑
-    section 1. 니즈 인식
-      인력난·생산성 한계 체감: 3: 공장장, 대표
-    section 2. 정보 탐색 [P-02, P-05 → F-03, F-04]
-      박람회·브로커 의존, 정보 비대칭: 1: 김도진, 조상필
-      업체 재무·실력 검증 불가능: 1: 김도진
-    section 3. 업체 선정 및 기안 [P-02 → F-03]
-      기안 반려 반복, 개인 리스크 전가: 2: 김도진
-      3D 기술핏 사전 검증 부재: 1: 박성민
-    section 4. 계약 및 결제 [P-01, P-04 → F-01, F-05]
-      계약금 날릴까 공포: 1: 조상필
-      CAPEX 목돈 부담: 2: 이정훈
-    section 5. 시공 및 AS [P-01 → F-02]
-      SI 업체 잠적, AS 단절: 1: 조상필
-      긴급 출동 불가: 1: 조상필
-```
-
----
-
-## 12. 인터뷰·시장·전략 근거 (Evidence)
-
-### 12.1 인터뷰 근거
-
-PRD 9.1절의 JTBD 심층 인터뷰 결과를 SRS 참조용으로 정식 기재한다.
-
-| 출처 | 핵심 인사이트 (원문 인용) | 연결 Pain/Feature | PRD 출처 |
-|:---|:---|:---|:---|
-| JTBD 심층 인터뷰 — 조상필 (P9) | *"새벽 2시 출동 보장되면 15% 더 주지"* → 보증료 WTP 10~15% 검증 | P-01, F-02 → VAL-05 | PRD 9.1절 인터뷰 근거 |
-| JTBD 심층 인터뷰 — 김도진 (P1) | *"부도나면 내 목이 날아감"* → 기안 통과율 Pain 확인 | P-02, F-03 → VAL-02 | PRD 9.1절 인터뷰 근거 |
-| JTBD 심층 인터뷰 — 백창훈 (P11) | *"온라인은 사기야. 멱살 잡을 담당자가 없으면 절대 안 사"* → O2O 필수성 검증 | P-03, F-06 | PRD 9.1절 인터뷰 근거 |
-| JTBD 심층 인터뷰 — 강혁진 (P6) | *"매칭 과정이 너무 파편화되어 영업사원들도 지쳐 떨어집니다"* → 파트너 검색 Pain 확인 | P-05, F-04 | PRD 9.1절 인터뷰 근거 |
-
-### 12.2 시장 리서치 근거
-
-PRD 9.2절의 시장 데이터를 SRS 참조용으로 정식 기재한다.
-
-| 출처 | 핵심 데이터 | 활용 요구사항 | PRD 출처 |
-|:---|:---|:---|:---|
-| Grand View Research (2024) | 글로벌 로봇 SI 시장 **$745억**, CAGR **9.6%** | 시장 규모 타당성 → REQ-NF-021 확장성 근거 | PRD 9.2절 시장 리서치 근거 |
-| 국내 로봇 산업 실태조사 (2023) | 국내 로봇 SI 매출 **1조 6,695억 원**, SME **44.2%** CAPEX 부담 | P-04 검증 → REQ-FUNC-018~022 (RaaS) | PRD 9.2절 시장 리서치 근거 |
-| 마로솔 사례분석 | 2023 상반기 수주 **100억**, 매출 Y/Y **5.8×** 성장 | 경쟁사 벤치마크 → REQ-RISK-05 | PRD 9.2절 경쟁사 분석 |
-
-### 12.3 전략 분석 근거
-
-PRD 9.3절의 전략 분석 결과를 SRS 참조용으로 정식 기재한다.
-
-| 출처 | 핵심 인사이트 | 활용 요구사항 | PRD 출처 |
-|:---|:---|:---|:---|
-| Porter's 5 Forces | 대체재 위협 상 (전통 SI) → **공생 구조 편입 전략** | ADR-001 (에스크로 중재) → REQ-FUNC-003 | PRD 9.3절 전략 분석 근거 |
-| KSF 통합 보고서 | KSF A(호환성 DB) → B(SI 공생) → C(3D 시뮬레이션) **순서적 실행** | Section 11.5 이행 경로 | PRD 9.3절 전략 분석 근거 |
-| AOS-DOS 분석 | **Q1 집중(예산 80%)** → Q3(O2O) → Q2(백로그) 투자 서열 | Section 11.4 투자 우선순위 | PRD 9.3절 전략 분석 근거 |
-
----
-
-## 13. Glossary (용어집 확장)
-
-기존 SRS 1.3절에 정의된 용어 외 추가로 참조가 필요한 용어를 기재한다.
-
-| 용어 | 정의 | 사용 섹션 |
-|:---|:---|:---|
-| **에스크로 거래 완결 수 (월간)** | 북극성 KPI. `ESCROW_TX` 테이블에서 `state=released`인 건수의 월간 집계값 | 11.3, REQ-NF-023 |
-| **뱃지 인증 SI** | 로봇 제조사가 기술력을 보증하여 인증 뱃지를 발급한 SI 업체. 검색 결과 상단 노출 대상 | 4.1.4, REQ-FUNC-013~017 |
-| **SLA (Service Level Agreement)** | AS 접수 후 24시간 이내 현장 출동을 보장하는 서비스 수준 협약 | REQ-FUNC-007, REQ-NF-024 |
-| **Cold-Start** | 플랫폼 초기 런칭 시 공급(SI 파트너) 또는 수요(기업)가 부족하여 네트워크 효과가 미작동하는 상태 | REQ-RISK-01 |
-| **Layer 3 SI** | 소규모 영세 SI 업체 (규모 기준). 플랫폼 초기 공급 확보를 위한 무료 온보딩 대상 | REQ-RISK-01 완화 전략 |
-| **GMV (Gross Merchandise Volume)** | 플랫폼을 통해 체결된 전체 거래액. 보증 수수료 비율 산출 기준 | 11.3 |
-| **Van Westendorp PSM** | 가격 민감도 측정 설문 기법 (4개 질문). 보증료 WTP 중앙값 산출에 사용 | VAL-05 |
-| **Quadrant (Q1~Q4)** | AOS-DOS 분석에서 기회 점수와 만족 점수를 기반으로 기능을 4개 상한에 분류하는 기법 | 11.4 |
-| **LOI (Letter of Intent)** | 의향서. 제조사 파트너십 체결 의지를 사전에 확인하기 위한 법적 비구속 문서 | ASM-02, DEP-03 |
-| **RPO / RTO** | Recovery Point Objective (복구 시점 목표) / Recovery Time Objective (복구 시간 목표) | REQ-NF-009, REQ-NF-010 |
-
----
-
-*끝. 본 SRS v1.1은 PRD v0.2 (REF-01)를 유일한 원천(Source of Truth)으로 하여 ISO/IEC/IEEE 29148:2018 표준에 따라 작성되었습니다. v1.0 대비 주요 변경: ① Assumptions 검증 방안 추가, ② 외부 문서 참조를 PRD 단일 원천으로 통합, ③ External Systems 역할 및 Fallback 전략 명시, ④ 시퀀스 다이어그램 3종(뱃지·OPEX 비교·RaaS 구독) 추가. Closed Beta 결과 및 실험(EXP-01~05) 수행 결과에 따라 SRS v1.2로 개정됩니다.*
-
+*끝. 본 SRS v1.1 (v0.3)은 PRD v0.2 (REF-01)를 유일한 원천(Source of Truth)으로 하여 ISO/IEC/IEEE 29148:2018 표준에 따라 작성되었습니다. v0.2 대비 기술 스택 정합성 전환(C-TEC-001~007, Next.js App Router 풀스택 아키텍처)이 적용되었습니다. Closed Beta 결과 및 실험(EXP-01~05) 수행 결과에 따라 SRS v1.2로 개정됩니다.*
